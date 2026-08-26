@@ -1,0 +1,175 @@
+{
+  "$comment": "아웃게임 성장 상점. 재화 = 신의 파편(shards). levels[i].price = i번째 단계 가격. 효과는 src/sim이 id로 해석.",
+  "currency": {
+    "id": "shards",
+    "name": "신의 파편"
+  },
+  "items": [
+    {
+      "id": "enhancePerClick",
+      "name": "1회 강화량",
+      "levels": [
+        {
+          "value": 1,
+          "price": 0
+        },
+        {
+          "value": 2,
+          "price": 60
+        },
+        {
+          "value": 3,
+          "price": 150
+        }
+      ]
+    },
+    {
+      "id": "forgeLevel",
+      "name": "야금술",
+      "levels": [
+        {
+          "value": 1,
+          "price": 0
+        },
+        {
+          "value": 2,
+          "price": 40
+        },
+        {
+          "value": 3,
+          "price": 90
+        }
+      ],
+      "$comment": "구 대장간 레벨. 강화 결과/티어 분포는 constants.forge.resultByForgeLevel / tierByForgeLevel"
+    },
+    {
+      "id": "beds",
+      "name": "막사 침상",
+      "levels": [
+        {
+          "value": 1,
+          "price": 0
+        },
+        {
+          "value": 2,
+          "price": 80
+        }
+      ]
+    },
+    {
+      "id": "stunCooldown",
+      "name": "기절 쿨타임",
+      "levels": [
+        {
+          "value": 12,
+          "price": 0
+        },
+        {
+          "value": 9,
+          "price": 40
+        }
+      ]
+    },
+    {
+      "id": "mineSlots",
+      "name": "광산 인원",
+      "levels": [
+        {
+          "value": 1,
+          "price": 0
+        },
+        {
+          "value": 2,
+          "price": 70
+        },
+        {
+          "value": 3,
+          "price": 120
+        }
+      ]
+    },
+    {
+      "id": "wallLevel",
+      "name": "성벽 내구도",
+      "levels": [
+        {
+          "value": 1.0,
+          "price": 0
+        },
+        {
+          "value": 1.3,
+          "price": 50
+        },
+        {
+          "value": 1.6,
+          "price": 100
+        }
+      ]
+    },
+    {
+      "id": "artisanMemory",
+      "name": "장인의 기억",
+      "levels": [
+        {
+          "value": 0,
+          "price": 0
+        },
+        {
+          "value": 0.25,
+          "price": 50
+        }
+      ],
+      "$comment": "value = 직전 질서 특성이 다시 뜰 확률 가중"
+    },
+    {
+      "id": "forgeBias",
+      "name": "대장간 성향",
+      "levels": [
+        {
+          "value": 0,
+          "price": 0
+        },
+        {
+          "value": 0.1,
+          "price": 30
+        }
+      ],
+      "$comment": "후순위. value = 질서 쪽으로 기울이는 확률(음수면 혼돈). 구현 안 해도 됨"
+    },
+    {
+      "id": "unitUpgrade",
+      "name": "유닛 기본 수치",
+      "perUnit": true,
+      "$comment": "유닛 id마다 독립 단계. value = hp·def 배율",
+      "levels": [
+        {
+          "value": 1.0,
+          "price": 0
+        },
+        {
+          "value": 1.1,
+          "price": 30
+        },
+        {
+          "value": 1.2,
+          "price": 60
+        },
+        {
+          "value": 1.3,
+          "price": 100
+        }
+      ]
+    }
+  ],
+  "future": {
+    "$comment": "이번 버전 미구현. 저장 스키마에 자리만 둔다.",
+    "avatars": [
+      {
+        "id": "demigod",
+        "name": "데미갓",
+        "unlocked": true
+      }
+    ],
+    "relics": []
+  }
+}

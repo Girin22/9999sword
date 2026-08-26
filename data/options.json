@@ -1,0 +1,30 @@
+{
+  "$comment": "부가 옵션 줄. 검은 특성 줄 1개(질서/혼돈, traits.json) + 부가 옵션 줄 최대 maxLines-1개를 가진다. 부가 옵션은 5클릭 형상 굴림 때 한 줄씩 붙는다(빈 줄 있으면 추가, 다 찼으면 랜덤 한 줄 교체). 시작 풀 2개, 나머지는 옵션 레시피(보스 드롭)로 해금. 줄 수 상한은 모루 레시피로 상승. 효과는 카탈로그 12축 스탯이라 스크립트 불필요 — swordStats에 더한다.",
+  "lines": { "start": 2, "max": 5, "traitLines": 1,
+    "$comment": "start=2 → 특성 1 + 부가 1. 모루 레시피 anvil:3, anvil:4, anvil:5로 총 줄 수 상승" },
+  "rollOnShapeReroll": true,
+  "startPool": ["buff_attackSpeed", "debuff_moveSpeed"],
+  "options": [
+    { "id": "buff_attackSpeed",  "name": "공속 버프",     "group": "buff",   "stat": "attackSpeedMult", "value": 0.10, "desc": "공격 속도 +10% (마검사가 들면 깃발 범위 아군 전체)" },
+    { "id": "buff_attack",       "name": "공격 버프",     "group": "buff",   "stat": "atkMult",         "value": 0.10, "desc": "공격력 +10%" },
+    { "id": "buff_defense",      "name": "방어 버프",     "group": "buff",   "stat": "defMult",         "value": 0.15, "desc": "방어력 +15%" },
+    { "id": "buff_regen",        "name": "회복 버프",     "group": "buff",   "stat": "hpRegenPct",      "value": 0.01, "desc": "초당 체력 1% 회복" },
+    { "id": "buff_moveSpeed",    "name": "이속 버프",     "group": "buff",   "stat": "moveSpeedMult",   "value": 0.15, "desc": "이동 속도 +15%" },
+    { "id": "debuff_moveSpeed",  "name": "둔화 디버프",   "group": "debuff", "stat": "enemyMoveSpeedMult", "value": -0.10, "desc": "때린(범위) 몬스터 이동 속도 −10%" },
+    { "id": "debuff_attack",     "name": "약화 디버프",   "group": "debuff", "stat": "enemyAtkMult",    "value": -0.10, "desc": "몬스터 공격력 −10%" },
+    { "id": "debuff_defense",    "name": "파쇄 디버프",   "group": "debuff", "stat": "enemyDefMult",    "value": -0.15, "desc": "몬스터 방어력 −15%" },
+    { "id": "debuff_dot",        "name": "출혈 디버프",   "group": "debuff", "stat": "enemyDotPct",     "value": 0.01, "desc": "몬스터 초당 최대 체력 1% 피해" },
+    { "id": "critChance",        "name": "치명타 확률",   "group": "crit",   "stat": "critChanceAdd",   "value": 0.10, "desc": "치명타 확률 +10%p" },
+    { "id": "critDamage",        "name": "치명타 피해",   "group": "crit",   "stat": "critDamageAdd",   "value": 0.30, "desc": "치명타 피해 +30%p" },
+    { "id": "defIgnore",         "name": "방어 무시",     "group": "pierce", "stat": "defIgnore",       "value": 0.15, "desc": "방어 무시 15%" }
+  ],
+  "rules": {
+    "noDuplicateStatPerSword": true,
+    "$comment": "같은 stat 줄은 검 하나에 하나만. 버프/디버프 줄은 마검사가 들면 깃발 범위로, 다른 병종이 들면 자기 자신/때린 적에게만(적합도 optionsActive=false면 버프·디버프 줄 미발현)."
+  },
+  "recipes": {
+    "$comment": "옵션 레시피 id = 'opt:<optionId>', 모루 레시피 id = 'anvil:<총 줄 수>'. stages.json recipes 목록에 섞여 드롭.",
+    "option": ["opt:buff_attack", "opt:buff_defense", "opt:buff_regen", "opt:buff_moveSpeed", "opt:debuff_attack", "opt:debuff_defense", "opt:debuff_dot", "opt:critChance", "opt:critDamage", "opt:defIgnore"],
+    "anvil": ["anvil:3", "anvil:4", "anvil:5"]
+  }
+}

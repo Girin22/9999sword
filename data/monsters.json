@@ -1,0 +1,27 @@
+{
+  "$comment": "S1 기준 수치. 스테이지 배율은 stages.json. wallSeconds = 무방비 시 성벽이 0이 되는 초 (성벽 DPS = wall.hp / wallSeconds). 에셋은 유닛 기본 바디 + mask.",
+  "mobs": [
+    { "id": "calf",    "name": "송아지",     "hp": 120, "atk": 8,  "def": 10, "moveSpeed": 1.0, "attackInterval": 1.2, "range": 50,
+      "behavior": "melee", "target": "nearest", "drop": 1,  "mask": "bull",  "tint": "#a0724a" },
+    { "id": "harpy",   "name": "하르피",     "hp": 60,  "atk": 6,  "def": 0,  "moveSpeed": 2.2, "attackInterval": 1.0, "range": 50,
+      "behavior": "flyOver", "target": "rearmost", "drop": 1, "mask": "chicken", "tint": "#e8c24a" },
+    { "id": "satyr",   "name": "사티로스",   "hp": 90,  "atk": 10, "def": 5,  "moveSpeed": 0.9, "attackInterval": 1.6, "range": 320,
+      "behavior": "ranged", "target": "nearest", "kite": true, "projectile": "jar", "drop": 2, "mask": "goat", "tint": "#8a5cc7" },
+    { "id": "hoplite", "name": "호플리테스", "hp": 200, "atk": 12, "def": 60, "moveSpeed": 0.6, "attackInterval": 1.5, "range": 60,
+      "behavior": "melee", "target": "nearest", "drop": 3, "mask": "skull", "tint": "#8d95a1", "props": ["roundShield", "shortspear"] }
+  ],
+  "giants": [
+    { "id": "hermes",     "name": "헤르메스",     "hp": 1400, "atk": 20, "def": 0,   "moveSpeed": 1.8, "attackInterval": 1.0, "wallSeconds": 25,
+      "warningSec": 5, "special": null, "drop": 15, "mask": "hermes", "props": ["parcel"] },
+    { "id": "poseidon",   "name": "포세이돈",     "hp": 2600, "atk": 25, "def": 40,  "moveSpeed": 0.7, "attackInterval": 1.4, "wallSeconds": 22,
+      "warningSec": 10, "special": { "id": "wave", "every": 12, "knockback": 180, "damage": 10, "shape": "cone" }, "drop": 20, "mask": "poseidon", "props": ["tube", "trident"] },
+    { "id": "hephaestus", "name": "헤파이스토스", "hp": 3000, "atk": 30, "def": 100, "moveSpeed": 0.6, "attackInterval": 1.6, "wallSeconds": 18,
+      "warningSec": 10, "special": { "id": "rival", "targetHighestSwordLevel": true }, "drop": 25, "mask": "hephaestus", "props": ["hammer"] },
+    { "id": "zeus",       "name": "제우스",       "hp": 5000, "atk": 28, "def": 60,  "moveSpeed": 0.8, "attackInterval": 1.3, "wallSeconds": 20,
+      "warningSec": 10, "special": { "id": "bolt", "every": 15, "everyBelowHalf": 8, "stunSec": 2, "scrapsSword": false }, "drop": 40, "boss": true, "mask": "zeus", "props": ["beard", "bolt"] }
+  ],
+  "scaling": {
+    "mob":   { "hpAtkMultPerStage": 1.25, "defAddPerStage": 8,  "countMultPerStage": 1.15 },
+    "giant": { "hpAtkMultPerStage": 1.30, "defAddPerStage": 15 }
+  }
+}

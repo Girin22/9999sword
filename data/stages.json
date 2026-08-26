@@ -1,0 +1,223 @@
+{
+  "$comment": "스테이지 정의. waves[].mobs = 잡몹 구간 40초 동안 생성할 목록. giant = 웨이브 끝 거대 몬스터. wallSecondsMult로 성벽 버티는 시간을 줄여 난이도를 낸다. recipes = 이 스테이지 보스 드롭 후보. recipes에는 특성 id / opt:<optionId> / anvil:<n> 세 종류가 섞인다(options.json).",
+  "stages": [
+    {
+      "id": "S1",
+      "name": "첫 독촉장",
+      "foodLimit": 10,
+      "stageIndex": 1,
+      "tutorial": true,
+      "wallSecondsMult": 1.0,
+      "waves": [
+        {
+          "mobs": {
+            "calf": 6
+          },
+          "giant": "hermes"
+        },
+        {
+          "mobs": {
+            "calf": 6,
+            "harpy": 3
+          },
+          "giant": "poseidon"
+        },
+        {
+          "mobs": {
+            "calf": 8,
+            "satyr": 3
+          },
+          "giant": "hermes"
+        },
+        {
+          "mobs": {
+            "calf": 6,
+            "harpy": 4,
+            "hoplite": 2
+          },
+          "giant": "hephaestus"
+        },
+        {
+          "mobs": {
+            "calf": 8,
+            "harpy": 3,
+            "satyr": 2,
+            "hoplite": 2
+          },
+          "giant": "zeus"
+        }
+      ],
+      "recipes": [
+        "rumination",
+        "myopia",
+        "opt:critChance",
+        "anvil:3"
+      ],
+      "reward": {
+        "fixed": 30,
+        "randomMax": 20,
+        "failPerWave": 5
+      },
+      "unlocksOnClear": [
+        "daegeomeu"
+      ]
+    },
+    {
+      "id": "S2",
+      "name": "두 번째 독촉장",
+      "foodLimit": 15,
+      "stageIndex": 2,
+      "wallSecondsMult": 0.9,
+      "waves": [
+        {
+          "mobs": {
+            "calf": 8,
+            "harpy": 3
+          },
+          "giant": "hermes"
+        },
+        {
+          "mobs": {
+            "calf": 8,
+            "satyr": 4
+          },
+          "giant": "poseidon"
+        },
+        {
+          "mobs": {
+            "calf": 8,
+            "harpy": 4,
+            "hoplite": 3
+          },
+          "giant": "hephaestus"
+        },
+        {
+          "mobs": {
+            "calf": 10,
+            "satyr": 4,
+            "hoplite": 3
+          },
+          "giant": "poseidon"
+        },
+        {
+          "mobs": {
+            "calf": 10,
+            "harpy": 5,
+            "satyr": 3,
+            "hoplite": 4
+          },
+          "giant": "zeus"
+        }
+      ],
+      "recipes": [
+        "preheat",
+        "lightning",
+        "gamble",
+        "offering",
+        "opt:buff_attack",
+        "opt:debuff_defense",
+        "anvil:4"
+      ],
+      "reward": {
+        "fixed": 45,
+        "randomMax": 30,
+        "failPerWave": 7
+      },
+      "unlocksOnClear": [
+        "podong"
+      ]
+    },
+    {
+      "id": "S3",
+      "name": "최후통첩",
+      "foodLimit": 12,
+      "stageIndex": 3,
+      "wallSecondsMult": 0.8,
+      "waves": [
+        {
+          "mobs": {
+            "calf": 8,
+            "harpy": 4,
+            "hoplite": 2
+          },
+          "giant": "hephaestus"
+        },
+        {
+          "mobs": {
+            "calf": 10,
+            "satyr": 5
+          },
+          "giant": "hermes"
+        },
+        {
+          "mobs": {
+            "calf": 10,
+            "harpy": 5,
+            "hoplite": 4
+          },
+          "giant": "poseidon"
+        },
+        {
+          "mobs": {
+            "calf": 12,
+            "satyr": 5,
+            "hoplite": 5
+          },
+          "giant": "hephaestus"
+        },
+        {
+          "mobs": {
+            "calf": 12,
+            "harpy": 6,
+            "satyr": 4,
+            "hoplite": 6
+          },
+          "giant": "zeus"
+        }
+      ],
+      "recipes": [
+        "condense",
+        "sentinel",
+        "wallBlood",
+        "heavyGlory",
+        "forgeBlessing",
+        "opt:critDamage",
+        "opt:defIgnore",
+        "opt:debuff_dot",
+        "anvil:5"
+      ],
+      "reward": {
+        "fixed": 60,
+        "randomMax": 40,
+        "failPerWave": 10
+      },
+      "unlocksOnClear": [
+        "hote"
+      ],
+      "endingLine": "신들이 다음 독촉장을 보냈다."
+    },
+    {
+      "id": "INF",
+      "name": "무한 독촉",
+      "foodLimit": 12,
+      "stageIndex": 3,
+      "repeatOf": "S3",
+      "loopScaling": {
+        "hpAtkMultPerLoop": 1.3,
+        "defAddPerLoop": 15,
+        "wallSecondsMultPerLoop": 0.95,
+        "wallSecondsMin": 0.55
+      },
+      "recipes": "remaining",
+      "reward": {
+        "fixed": 60,
+        "fixedPerLoop": 10,
+        "randomMax": 40,
+        "failPerWave": 10
+      },
+      "unlock": "clear:S3"
+    }
+  ],
+  "recipeDropChance": 0.6,
+  "recipeDuplicateToCurrency": 20
+}

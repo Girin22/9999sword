@@ -1,0 +1,29 @@
+{
+  "$comment": "검 종류 9. weight 1~4. category는 적합도 판정용. options는 부가 옵션 카탈로그 축(docs/MANIFEST.md). 누구나 들 수 있고 적합도로 효율만 다르다.",
+  "kinds": [
+    { "id": "ceremonial", "name": "제식검",   "weight": 1, "category": "ceremonial", "fitClass": "mage",
+      "options": { "atkMult": 0.5, "buffEffectMult": 1.5, "debuffEffectMult": 1.5, "rangeMult": 1.3 } },
+    { "id": "basic",      "name": "기본검",   "weight": 2, "category": "knightSword", "fitClass": "knight",
+      "options": {} },
+    { "id": "rapier",     "name": "레이피어", "weight": 2, "category": "knightSword", "fitClass": "knight",
+      "options": { "critChanceAdd": 0.20, "atkMult": 0.85 } },
+    { "id": "scimitar",   "name": "곡도",     "weight": 2, "category": "knightSword", "fitClass": "knight",
+      "options": { "hits": 2, "hitMult": 0.60, "shape": "cone" } },
+    { "id": "shortspear", "name": "단창",     "weight": 2, "category": "spear", "fitClass": "thrower",
+      "options": { "rangeMult": 1.4 } },
+    { "id": "axe",        "name": "도끼",     "weight": 3, "category": "knightSword", "fitClass": "knight",
+      "options": { "defIgnore": 0.35, "critDamageAdd": 0.50 } },
+    { "id": "twin",       "name": "쌍검",     "weight": 3, "category": "knightSword", "fitClass": "knight",
+      "options": { "hits": 2, "hitMult": 0.55, "attackSpeedMult": 1.2 } },
+    { "id": "spear",      "name": "창",       "weight": 4, "category": "spear", "fitClass": "thrower",
+      "options": { "pierce": true, "atkMult": 1.2 } },
+    { "id": "greatsword", "name": "대검",     "weight": 4, "category": "knightSword", "fitClass": "knight",
+      "options": { "hits": 3, "hitMult": 0.70, "shape": "cone", "atkMult": 1.4, "shieldOnBack": true } }
+  ],
+  "rerollPool": {
+    "$comment": "5클릭마다 굴리는 풀. mode=uniform이면 전부 균등. mode=weightedByClicks면 clicksTotal에 따라 무거운 단계 가중치 상승(미결, 초안 uniform).",
+    "mode": "uniform",
+    "weightedByClicks": { "5": [1, 1, 0.3, 0.1], "10": [1, 1, 1, 0.5], "15": [1, 1, 1, 1] }
+  },
+  "scrap": { "id": "scrap", "name": "쇠한 검", "weight": 0, "atkFixed": 12, "options": {} }
+}

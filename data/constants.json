@@ -1,0 +1,85 @@
+{
+  "$comment": "전역 상수. 모든 시간은 초, 배속은 시뮬 tick에만 곱한다.",
+  "screen": { "width": 1080, "height": 1920 },
+  "speedOptions": [1, 2],
+
+  "forge": {
+    "costBase": 5,
+    "costPerFiveLevels": 1,
+    "atk": { "base": 10, "perLevel": 4, "breakthroughEvery": 10, "breakthroughMult": 1.1 },
+    "scrapAtk": 12,
+    "resultByForgeLevel": {
+      "1": { "fail": 0.20, "success": 0.70, "great": 0.10 },
+      "2": { "fail": 0.15, "success": 0.72, "great": 0.13 },
+      "3": { "fail": 0.10, "success": 0.75, "great": 0.15 }
+    },
+    "shapeRerollEveryClicks": 5,
+    "startKind": "basic",
+    "spirit": {
+      "perClickChance": 0.0127,
+      "pityClicks": 10,
+      "orderRatio": 0.5,
+      "keepCounterOnSupply": true
+    },
+    "tierByForgeLevel": {
+      "1": { "T1": 0.60, "T2": 0.30, "T3": 0.10 },
+      "2": { "T1": 0.50, "T2": 0.35, "T3": 0.15 },
+      "3": { "T1": 0.40, "T2": 0.40, "T3": 0.20 }
+    },
+    "avatarChanceWithinOrder": 0.03,
+    "tutorialStage1": { "guaranteedSuccessClicks": 3, "guaranteedChaosClickRange": [8, 10], "guaranteedChaosTrait": "bloodsword" }
+  },
+
+  "weight": {
+    "attackSpeedCoef": 0.25,
+    "moveSpeedCoef": 0.15
+  },
+
+  "classBase": {
+    "$comment": "병종 상수 (유닛 스탯 아님). attackInterval = 기본 공격 간격(초), moveSpeed = px/초, range = px",
+    "knight":  { "attackInterval": 1.0, "moveSpeed": 120, "range": 60 },
+    "thrower": { "attackInterval": 1.2, "moveSpeed": 110, "range": 420 },
+    "mage":    { "attackInterval": 1.5, "moveSpeed": 100, "range": 60, "flagRadius": 220 }
+  },
+
+  "fitness": {
+    "$comment": "병종 × 검 카테고리 적합도. mult = 공격력(또는 버프 강도) 배율, optionsActive = 종류 고유/특성 버프·디버프 옵션 발현 여부",
+    "knight":  { "knightSword": { "mult": 1.0, "optionsActive": true }, "spear": { "mult": 0.7, "optionsActive": false }, "ceremonial": { "mult": 0.4, "optionsActive": false } },
+    "thrower": { "knightSword": { "mult": 0.7, "optionsActive": true }, "spear": { "mult": 1.0, "optionsActive": true }, "ceremonial": { "mult": 0.4, "optionsActive": false } },
+    "mage":    { "knightSword": { "mult": 0.4, "optionsActive": false }, "spear": { "mult": 0.4, "optionsActive": false }, "ceremonial": { "mult": 1.0, "optionsActive": true } }
+  },
+
+  "mageBuffPercentPerAtk": 0.1,
+
+  "stun": { "cooldownSec": 12, "restSpeedMultiplier": 2 },
+  "barracks": { "beds": 1, "recoverThreshold": 0.20, "autoCallNext": false },
+  "mine": { "$comment": "slots = 배치 가능 유닛 수(인게임 용량, 식량과 무관). 성장으로 최대 3", "baseRatePerSec": 0.5, "slots": 1, "maxSlots": 3, "levelCoef": 0.05, "minerIncludedInSupply": true },
+
+  "avatar": {
+    "hp": 240, "def": 40,
+    "hpDrainPerSec": 0.015,
+    "fitnessAlways": 1.0,
+    "attack": "meleeAndWave"
+  },
+
+  "wall": {
+    "hpBase": 1000,
+    "regenOnWaveClear": 0.30,
+    "mobsHitWall": false
+  },
+
+  "wave": {
+    "mobPhaseSec": 40,
+    "mobSpawnIntervalSec": [5, 8],
+    "warningSec": 10,
+    "warningSecHermes": 5,
+    "giantsBringMobs": false
+  },
+
+  "defense": {
+    "$comment": "받는 피해 = atk * 100/(100+def*defMult - ignore) * damageReduction",
+    "formula": "atk * 100 / (100 + max(0, def * defMult * (1 - defIgnore))) * (1 - damageReduction)"
+  },
+
+  "critBase": { "chance": 0.05, "damage": 1.5 }
+}
