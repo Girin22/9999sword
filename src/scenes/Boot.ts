@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { SFX_FILES } from '../audio/sfx';
+import { UI_SFX_FILES } from '../audio/ui';
 export class Boot extends Phaser.Scene {
   constructor() { super('Boot'); }
   preload(): void {
@@ -16,6 +17,7 @@ export class Boot extends Phaser.Scene {
     this.load.audio('bgm-lobby', 'assets/audio/lobby.mp3');
     this.load.audio('bgm-ingame', 'assets/audio/ingame.mp3');
     for (const [key, path] of Object.entries(SFX_FILES)) this.load.audio(key, path);
+    for (const [key, path] of Object.entries(UI_SFX_FILES)) this.load.audio(key, path);
   }
   create(): void { this.scene.start('Title'); }
 }

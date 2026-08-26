@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { playUiClick } from '../audio/ui';
 
 export const COLORS = { paper: 0xf5e8c8, ink: 0x293442, inkSoft: 0x53616b, blue: 0x4f8fd8, red: 0xd95d5d, gold: 0xe9b949, green: 0x7ebc78, panel: 0xfff8e7, disabled: 0x9a9a8f } as const;
 
@@ -60,7 +61,10 @@ export function makeButton(scene: Phaser.Scene, x: number, y: number, label: str
     releaseTimer = scene.time.delayedCall(wait, () => {
       releasing = false;
       settle(false);
-      if (fire && alive) scene.time.delayedCall(PRESS_FIRE_DELAY_MS, () => { if (alive) onTap(); });
+      if (fire && alive) {
+        playUiClick(scene);
+        scene.time.delayedCall(PRESS_FIRE_DELAY_MS, () => { if (alive) onTap(); });
+      }
     });
   };
   container.setInteractive({ useHandCursor: true })
