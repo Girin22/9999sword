@@ -53,7 +53,7 @@
     <div class="player" id="player">
       <div class="empty" id="empty">
         아직 영상이 없습니다.<br />
-        <code>public/demo/demo.mp4</code> 를 넣거나, 아래 스크립트의 <code>YOUTUBE_ID</code> 를 채워 주세요.
+        <code>public/demo/9999sword.mp4</code> 를 넣거나, 아래 스크립트의 <code>YOUTUBE_ID</code> 를 채워 주세요.
       </div>
     </div>
 
@@ -62,18 +62,18 @@
 
     <script>
       // ── 영상 소스 설정 ─────────────────────────────────────────────
-      // 1) 로컬 파일: public/demo/demo.mp4 (또는 .webm) 을 두면 자동 재생됩니다.
+      // 1) 로컬 파일: public/demo/9999sword.mp4 가 있으면 자동 재생됩니다.
       // 2) 유튜브: 아래 ID를 채우면 유튜브 임베드를 우선 사용합니다. 예) 'dQw4w9WgXcQ'
       const YOUTUBE_ID = '';
-      const LOCAL_SRC = '/demo/demo.mp4';
-      // 세로 영상이면 true (플레이어가 9:16 세로 프레임으로 바뀝니다)
-      const PORTRAIT = true;
+      const LOCAL_SRC = '/demo/9999sword.mp4';
+      // 유튜브 임베드일 때 세로 프레임을 쓸지 여부. 로컬 영상은 실제 크기로 자동 판별합니다.
+      const YOUTUBE_PORTRAIT = true;
 
       const player = document.getElementById('player');
       const empty = document.getElementById('empty');
-      if (PORTRAIT) player.classList.add('portrait');
 
       if (YOUTUBE_ID) {
+        if (YOUTUBE_PORTRAIT) player.classList.add('portrait');
         const frame = document.createElement('iframe');
         frame.src = `https://www.youtube-nocookie.com/embed/${YOUTUBE_ID}?rel=0&modestbranding=1&playsinline=1`;
         frame.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
@@ -82,16 +82,21 @@
         empty.remove();
         player.appendChild(frame);
       } else {
-        fetch(LOCAL_SRC, { method: 'HEAD' }).then((res) => {
-          if (!res.ok || !(res.headers.get('content-type') || '').startsWith('video/')) return;
-          const video = document.createElement('video');
-          video.src = LOCAL_SRC;
-          video.controls = true;
-          video.playsInline = true;
-          video.preload = 'metadata';
+        // Mount the player straight away; only fall back to the notice if the browser reports an error.
+        const video = document.createElement('video');
+        video.src = LOCAL_SRC;
+        video.controls = true;
+        video.playsInline = true;
+        video.preload = 'metadata';
+        video.addEventListener('loadedmetadata', () => {
+          player.classList.toggle('portrait', video.videoHeight > video.videoWidth);
           empty.remove();
-          player.appendChild(video);
-        }).catch(() => {});
+        });
+        video.addEventListener('error', () => {
+          video.remove();
+          empty.textContent = '영상을 불러오지 못했습니다: ' + LOCAL_SRC;
+        });
+        player.appendChild(video);
       }
     </script>
   </body>
