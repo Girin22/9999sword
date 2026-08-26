@@ -10,6 +10,8 @@ import { addSheetSprite, COLORS, holoOutline, iconLabel, makeButton, paperPanel,
 import { L } from '../ui/layout';
 
 type Building = 'forge' | 'barracks' | 'mine';
+/** How long a tapped building tooltip stays up on touch devices. */
+const TOUCH_TOOLTIP_MS = 3500;
 
 export class BattleHUD extends Phaser.Scene {
   private sim!: BattleSimulation;
@@ -35,6 +37,7 @@ export class BattleHUD extends Phaser.Scene {
   private tooltipLayer?: Phaser.GameObjects.Container;
   private tooltipText?: Phaser.GameObjects.Text;
   private hovered?: Building;
+  private tooltipTimer?: Phaser.Time.TimerEvent;
   private menuLayer?: Phaser.GameObjects.Container;
 
   constructor() {
@@ -87,7 +90,8 @@ export class BattleHUD extends Phaser.Scene {
     button.add(sizeSheetSprite(addSheetSprite(this, 'buildings-sheet', artIndex, 3), 205, 185).setY(id === 'forge' ? 4 : 18));
     button.add(this.add.text(0, -105, label, { fontSize: '34px', color: '#ffffff', fontStyle: 'bold', stroke: '#293442', strokeThickness: 9 }).setPadding(8, 10, 8, 4).setOrigin(0.5));
     button.on('pointerover', () => this.showTooltip(id));
-    button.on('pointerout', () => this.hideTooltip());
+    // Touch has no hover: a tap keeps the tooltip for a few seconds instead of hiding on the lift.
+    button.on('pointerout', (pointer: Phaser.Input.Pointer) => { if (!pointer.wasTouch) this.hideTooltip(); });
   }
 
   private showTooltip(id: Building): void {
@@ -97,9 +101,13 @@ export class BattleHUD extends Phaser.Scene {
     this.tooltipText = this.add.text(540, 1155, '', { fontSize: '29px', color: '#ffffff', align: 'center', lineSpacing: 8, fontStyle: 'bold', wordWrap: { width: 820 } }).setPadding(10, 12, 10, 8).setOrigin(0.5);
     this.tooltipLayer = this.add.container(0, 0, [bg, this.tooltipText]).setDepth(45);
     this.refreshTooltip();
+    this.tooltipTimer?.remove(false);
+    if (this.input.activePointer.wasTouch) this.tooltipTimer = this.time.delayedCall(TOUCH_TOOLTIP_MS, () => this.hideTooltip());
   }
 
   private hideTooltip(): void {
+    this.tooltipTimer?.remove(false);
+    this.tooltipTimer = undefined;
     this.hovered = undefined;
     this.tooltipLayer?.destroy(true);
     this.tooltipLayer = undefined;

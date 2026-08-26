@@ -49,11 +49,16 @@ export function makeButton(scene: Phaser.Scene, x: number, y: number, label: str
       scene.tweens.add({ targets: node, y: node.y + (down ? BUTTON_DEPTH : -BUTTON_DEPTH), duration: down ? PRESS_DOWN_MS : PRESS_UP_MS, ease: down ? "Quad.easeOut" : "Back.easeOut" });
     }
   };
+  let releasing = false;
   const release = (fire: boolean): void => {
-    if (!pressed) return;
+    // Touch input emits pointerup and then pointerout on the same lift; once a firing
+    // release is scheduled, a trailing pointerout must not downgrade it to a cancel.
+    if (!pressed || releasing) return;
+    releasing = true;
     const wait = Math.max(0, PRESS_HOLD_MS - (scene.time.now - pressedAt));
     releaseTimer?.remove(false);
     releaseTimer = scene.time.delayedCall(wait, () => {
+      releasing = false;
       settle(false);
       if (fire && alive) scene.time.delayedCall(PRESS_FIRE_DELAY_MS, () => { if (alive) onTap(); });
     });
