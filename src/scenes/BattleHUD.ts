@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { addBgmToggle, toggleBgm } from '../audio/bgm';
+import { SfxMixer } from '../audio/sfx';
 import { constants, swordData, traitData, unitData } from '../data';
 import { session } from '../session';
 import { BattleSimulation, traitName } from '../sim/battle';
@@ -12,6 +13,7 @@ type Building = 'forge' | 'barracks' | 'mine';
 
 export class BattleHUD extends Phaser.Scene {
   private sim!: BattleSimulation;
+  private sfx!: SfxMixer;
   private selected: Building = 'forge';
   private action!: Phaser.GameObjects.Container;
   private materialsLabel!: IconLabel;
@@ -44,6 +46,8 @@ export class BattleHUD extends Phaser.Scene {
   }
 
   create(): void {
+    this.sfx = new SfxMixer(this);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.sfx.destroy());
     this.add.graphics().fillStyle(0xfff4d8, 0.8).fillRoundedRect(22, 24, 570, 106, 30).lineStyle(6, COLORS.ink, 0.9).strokeRoundedRect(22, 24, 570, 106, 30);
     this.materialsLabel = iconLabel(this, 46, 76, 'icon-ore', '0', { fontSize: '34px', color: '#293442', fontStyle: 'bold' });
     this.materialsLabel.root.setDepth(10);
@@ -148,6 +152,7 @@ export class BattleHUD extends Phaser.Scene {
         () => {
           if (this.reveal) return;
           const events = this.sim.enhance();
+          if (events.length) this.sfx.play('enhance', events.includes('great') ? 1.15 : 1);
           if (events.includes('spirit')) this.revealSpirit(events.includes('avatar') ? 'order' : events.includes('chaos') ? 'chaos' : 'order');
           this.renderAction();
           this.refreshTooltip();
@@ -155,7 +160,9 @@ export class BattleHUD extends Phaser.Scene {
         { width: buttonWidth, height: L.actionBar.y1 - L.actionBar.y0, fill: this.reveal ? 0xbdb6a6 : 0xf5c95d, disabled: Boolean(this.reveal) },
       );
       // Big label filling the button on the left, cost with the ore icon flush right.
-      enhanceButton.add(this.add.text(-buttonWidth / 2 + 44, 0, '강화하기', { fontSize: '68px', color: '#293442', fontStyle: 'bold' }).setOrigin(0, 0.5));
+      enhanceButton.add(this.add.text(-buttonWidth / 2 + 44, -14, '강화하기', { fontSize: '62px', color: '#293442', fontStyle: 'bold' }).setOrigin(0, 0.5));
+      const chance = Math.round(this.sim.enhanceSuccessChance() * 100);
+      enhanceButton.add(this.add.text(-buttonWidth / 2 + 48, 44, `성공 확률 ${chance}%`, { fontSize: '26px', color: chance >= 100 ? '#2f8a4c' : '#53616b', fontStyle: 'bold' }).setOrigin(0, 0.5));
       const cost = iconLabel(this, buttonWidth / 2 - 44, 0, 'icon-ore', String(forgeCost(this.sim.forge.n)), { fontSize: '44px', color: '#293442', fontStyle: 'bold' }, 'right');
       enhanceButton.add(cost.root);
       this.action.add(enhanceButton);
@@ -169,7 +176,8 @@ export class BattleHUD extends Phaser.Scene {
       classes.forEach((entry, index) => {
         const members = this.sim.units.filter((unit) => unit.class === entry.id);
         const present = members.length > 0;
-        const level = present ? Math.max(...members.map((unit) => unit.sword.n)) : 0;
+        // Show the weakest sword in the class so a scrapped (fallen) unit is visible at a glance.
+        const level = present ? Math.min(...members.map((unit) => unit.sword.n)) : 0;
         const button = makeButton(this, L.actionBar.slots[index]!.x + L.actionBar.slotW / 2, (L.actionBar.y0 + L.actionBar.y1) / 2, '', () => this.sim.supply(entry.id), {
           width: L.actionBar.slotW,
           height: slotH,

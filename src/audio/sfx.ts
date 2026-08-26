@@ -12,7 +12,7 @@ import { session } from '../session';
  * gain = 10^((target − maxRMS) / 20), capped at 1.0. magic is pulled down to 0.5 by ear — its long tail
  * stacks across casts and reads louder than its RMS suggests.
  */
-export type SfxCue = 'swing' | 'shoot' | 'magic' | 'hit' | 'bossRun' | 'bossSmash';
+export type SfxCue = 'swing' | 'shoot' | 'magic' | 'hit' | 'bossRun' | 'bossSmash' | 'enhance';
 
 interface CueDef {
   /** Audio cache keys; one is picked at random per play. */
@@ -40,6 +40,7 @@ export const SFX_FILES: Record<string, string> = {
   'sfx-damaged2': 'assets/audio/sfx/damaged2.mp3',
   'sfx-monster-run': 'assets/audio/sfx/monster_run.mp3',
   'sfx-monster-smash': 'assets/audio/sfx/monster_smash.mp3',
+  'sfx-up': 'assets/audio/sfx/up.mp3',
 };
 
 const CUES: Record<SfxCue, CueDef> = {
@@ -49,6 +50,8 @@ const CUES: Record<SfxCue, CueDef> = {
   hit: { keys: ['sfx-damaged', 'sfx-damaged2'], gains: [0.51, 0.58], maxVoices: 4, minIntervalMs: 55, priority: 1, detune: 120 },
   bossRun: { keys: ['sfx-monster-run'], gains: [0.87], maxVoices: 1, minIntervalMs: 400, priority: 5, detune: 0, duckMs: 500 },
   bossSmash: { keys: ['sfx-monster-smash'], gains: [0.86], maxVoices: 2, minIntervalMs: 120, priority: 5, detune: 30, duckMs: 450 },
+  // up.mp3 is a quiet file (max-RMS −21.6 dB, peak −12.9 dB) so it gets a boost above 1; peak stays under −8 dB.
+  enhance: { keys: ['sfx-up'], gains: [1.6], maxVoices: 3, minIntervalMs: 40, priority: 4, detune: 60 },
 };
 
 const MASTER = 0.9;
@@ -88,7 +91,7 @@ export class SfxMixer {
     const stackTrim = Math.pow(STACK_TRIM, this.voices.filter((voice) => voice.cue === cue).length);
     const duck = now < this.duckUntil && def.priority < 5 ? DUCK_GAIN : 1;
     const jitter = 0.92 + Math.random() * 0.16;
-    const volume = Math.min(1, MASTER * def.gains[index]! * volumeScale * stackTrim * duck * jitter);
+    const volume = Math.min(2, MASTER * def.gains[index]! * volumeScale * stackTrim * duck * jitter);
     const detune = def.detune ? (Math.random() * 2 - 1) * def.detune : 0;
     const sound = this.scene.sound.add(key, { volume, detune });
     const voice: Voice = { cue, priority: def.priority, sound, startedAt: now };

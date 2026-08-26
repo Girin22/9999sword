@@ -13,6 +13,7 @@
       "2": { "fail": 0.15, "success": 0.72, "great": 0.13 },
       "3": { "fail": 0.10, "success": 0.75, "great": 0.15 }
     },
+    "successDecay": { "$comment": "현재 검에서 성공이 everySuccesses번 쌓일 때마다 성공 확률 perStep 감소, minChance 하한. 보급 시 리셋", "everySuccesses": 3, "perStep": 0.10, "minChance": 0.10 },
     "shapeRerollEveryClicks": 5,
     "startKind": "basic",
     "spirit": {
@@ -53,8 +54,8 @@
   "mageDebuffPercentPerAtk": 0.1,
 
   "stun": { "cooldownSec": 24, "restSpeedMultiplier": 2 },
-  "barracks": { "beds": 1, "recoverThreshold": 0.20, "autoCallNext": false },
-  "mine": { "$comment": "slots = 배치 가능 유닛 수(인게임 용량, 식량과 무관). 성장으로 최대 3", "baseRatePerSec": 0.5, "slots": 1, "maxSlots": 3, "levelCoef": 0.05, "minerIncludedInSupply": true },
+  "barracks": { "beds": 1, "recoverThreshold": 0.40, "autoCallNext": false },
+  "mine": { "$comment": "slots = 배치 가능 유닛 수(인게임 용량, 식량과 무관). 성장으로 최대 3", "baseRatePerSec": 1.0, "slots": 1, "maxSlots": 3, "levelCoef": 0.05, "minerIncludedInSupply": true },
 
   "avatar": {
     "hp": 240, "def": 40,
@@ -86,7 +87,7 @@
   ,
   "battle": {
     "$comment": "프로토타입 한 판 3~5분 밸런스. 렌더/시뮬이 공유하는 수치. unitMinY = 아군이 올라갈 수 있는 상한(맵 절반).",
-    "startMaterials": 150,
+    "startMaterials": 180,
     "monsterSpeedPixels": 74,
     "unitDamageMult": 10.0,
     "monsterDamageMult": 0.42,

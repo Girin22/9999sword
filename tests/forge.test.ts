@@ -1,15 +1,22 @@
 import { describe, expect, it } from 'vitest';
 import { constants } from '../src/data';
-import { attackAtLevel, createForgeState, enhance } from '../src/sim/forge';
+import { attackAtLevel, createForgeState, enhance, successChance } from '../src/sim/forge';
 import { SeededRng, sequenceRng } from '../src/sim/rng';
 
 const growth = { forgeLevel: 1, enhancePerClick: 1, lines: 2, recipes: [], optionRecipes: [] };
 const context = { stageId: 'S2', tutorial: false };
 describe('forge', () => {
-  it('matches the enhancement probability over 10,000 clicks', () => {
-    const rng = new SeededRng(42); let state = createForgeState(); let failures = 0;
-    for (let i = 0; i < 10_000; i += 1) { const result = enhance(state, 1_000_000_000, rng, growth, context); state = result.state; if (result.events.includes('fail')) failures += 1; }
+  it('matches the base enhancement probability over 10,000 fresh clicks', () => {
+    const rng = new SeededRng(42); let failures = 0;
+    for (let i = 0; i < 10_000; i += 1) { const result = enhance(createForgeState(), 1_000_000_000, rng, growth, context); if (result.events.includes('fail')) failures += 1; }
     expect(failures / 10_000).toBeGreaterThan(0.18); expect(failures / 10_000).toBeLessThan(0.22);
+  });
+  it('lowers the success chance by 10% per three successes down to 10%', () => {
+    const state = createForgeState();
+    expect(successChance(state, 1, context)).toBeCloseTo(0.8);
+    state.successCount = 3; expect(successChance(state, 1, context)).toBeCloseTo(0.7);
+    state.successCount = 6; expect(successChance(state, 1, context)).toBeCloseTo(0.6);
+    state.successCount = 60; expect(successChance(state, 1, context)).toBeCloseTo(0.1);
   });
   it('guarantees artisan spirit on the eleventh dry click', () => {
     const rng = sequenceRng([0.5]); let state = createForgeState();

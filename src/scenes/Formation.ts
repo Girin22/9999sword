@@ -1,7 +1,8 @@
 import Phaser from 'phaser';
 import { addBgmToggle } from '../audio/bgm';
-import { byId, stageData, unitData } from '../data';
+import { byId, unitData } from '../data';
 import { session } from '../session';
+import { foodLimitFor } from '../sim/food';
 import { persistSave } from '../sim/save';
 import { addSheetSprite, COLORS, makeButton, paperPanel, sizeSheetSprite, titleText } from '../ui/components';
 
@@ -22,9 +23,9 @@ export class Formation extends Phaser.Scene {
 
   create(): void {
     this.cameras.main.setBackgroundColor(COLORS.paper);
-    const stage = byId(stageData.stages, session.stageId);
+    const limit = foodLimitFor(session.stageId, session.save);
     this.selected = session.save.lastFormation.units.filter((id) => session.save.unlockedUnits.includes(id));
-    while (this.food() > stage.foodLimit) this.selected.pop();
+    while (this.food() > limit) this.selected.pop();
     this.miner = this.pickMiner(session.save.lastFormation.miner);
 
     this.drawBackdrop();
@@ -70,15 +71,15 @@ export class Formation extends Phaser.Scene {
 
   private render(): void {
     this.content.removeAll(true);
-    const stage = byId(stageData.stages, session.stageId);
+    const limit = foodLimitFor(session.stageId, session.save);
     const currentFood = this.food();
     const foodPanel = paperPanel(this, 260, 205, 560, 82, 0xffe6a6);
     this.content.add(foodPanel);
     this.content.add(
       this.add
-        .text(540, 246, `식량  ${currentFood} / ${stage.foodLimit}`, {
+        .text(540, 246, `식량  ${currentFood} / ${limit}`, {
           fontSize: '38px',
-          color: currentFood <= stage.foodLimit ? '#293442' : '#c54f4f',
+          color: currentFood <= limit ? '#293442' : '#c54f4f',
           fontStyle: 'bold',
         })
         .setOrigin(0.5),
@@ -91,7 +92,7 @@ export class Formation extends Phaser.Scene {
       const row = Math.floor(index / 2);
       const x = 65 + col * 490;
       const y = 325 + row * 285;
-      const canAdd = currentFood + def.food <= stage.foodLimit;
+      const canAdd = currentFood + def.food <= limit;
       const panel = paperPanel(this, x, y, 460, 240, count ? 0xdceecb : 0xfff4dc);
       this.content.add(panel);
       const artIndex = unitData.units.findIndex((unit) => unit.id === id);
@@ -107,7 +108,7 @@ export class Formation extends Phaser.Scene {
         .zone(x + 230, y + 120, 460, 240)
         .setInteractive({ useHandCursor: true })
         .on('pointerdown', () => {
-          if (this.food() + def.food > stage.foodLimit) {
+          if (this.food() + def.food > limit) {
             this.cameras.main.shake(90, 0.0025);
             return;
           }

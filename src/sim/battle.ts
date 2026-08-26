@@ -2,7 +2,7 @@ import { byId, constants, growthData, stageData, traitData, unitData } from '../
 import type { UnitClass } from '../data/types';
 import { requestRecovery, tickBarracks } from './barracks';
 import { tickCombat, type CombatContext, type CombatEvent } from './combat';
-import { createForgeState, enhance, resetForgeAfterSupply, type ForgeEvent, type ForgeGrowth } from './forge';
+import { createForgeState, enhance, resetForgeAfterSupply, successChance, type ForgeEvent, type ForgeGrowth } from './forge';
 import { assignMiner, mineTick } from './mine';
 import { SeededRng, type RandomSource } from './rng';
 import type { GameSave } from './save';
@@ -51,6 +51,11 @@ export class BattleSimulation {
 
   private forgeGrowth(): ForgeGrowth {
     return { forgeLevel: growthValue(this.save, 'forgeLevel') || 1, enhancePerClick: growthValue(this.save, 'enhancePerClick') || 1, lines: this.save.lines, recipes: this.save.recipes, optionRecipes: this.save.optionRecipes };
+  }
+
+  /** Chance (0..1) that the next enhance click raises the sword (success or great). */
+  enhanceSuccessChance(): number {
+    return successChance(this.forge, this.forgeGrowth().forgeLevel, { stageId: this.stageId, tutorial: Boolean(this.wave.stage.tutorial) });
   }
 
   enhance(): ForgeEvent[] {

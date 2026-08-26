@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { addBgmToggle } from '../audio/bgm';
 import { byId, growthData, optionsData, stageData, traitData, unitData } from '../data';
 import { session } from '../session';
+import { FOOD_WARNING_SLACK, foodLimitFor } from '../sim/food';
 import { persistSave } from '../sim/save';
 import { addSheetSprite, COLORS, iconLabel, makeButton, paperPanel, sizeSheetSprite, titleText, type IconLabel } from '../ui/components';
 
@@ -12,6 +13,11 @@ const UPGRADE_TABS: { id: UpgradeCategory; label: string }[] = [
   { id: 'util', label: '유틸' },
   { id: 'building', label: '건물' },
 ];
+
+/** Hidden developer refill on the lobby diamond chip. */
+const DEV_TAP_COUNT = 5;
+const DEV_TAP_WINDOW_MS = 1500;
+const DEV_SHARDS = 9999;
 
 export class Lobby extends Phaser.Scene {
   private popup!: Phaser.GameObjects.Container;
@@ -39,6 +45,7 @@ export class Lobby extends Phaser.Scene {
     this.currencyLabel = iconLabel(this, 66, 92, 'icon-diamond', String(session.save.shards), {
       fontSize: '36px', color: '#293442', fontStyle: 'bold',
     });
+    this.installDevRefill();
     addBgmToggle(this, 'bgm-lobby', 985, 92);
 
     const selected = stageData.stages.findIndex((stage) => stage.id === session.stageId);
@@ -53,6 +60,28 @@ export class Lobby extends Phaser.Scene {
     this.buildBottomButton(190, '출격 준비', 1, () => this.openFormation(), 0xf0c66f);
     this.buildBottomButton(540, '업그레이드', 0, () => this.openTab('upgrade'), 0xe4a779);
     this.buildBottomButton(890, '레시피', 2, () => this.openTab('recipes'), 0xa9c98e);
+  }
+
+  /**
+   * Developer cheat: tap the diamond chip 5 times within 1.5 s to refill shards to 9999.
+   * Invisible otherwise — no button, just the hidden hit zone over the chip.
+   */
+  private installDevRefill(): void {
+    let taps = 0;
+    let firstTapAt = 0;
+    this.add.zone(165, 92, 250, 98).setInteractive().on('pointerdown', () => {
+      const now = this.time.now;
+      if (now - firstTapAt > DEV_TAP_WINDOW_MS) { taps = 0; firstTapAt = now; }
+      taps += 1;
+      if (taps < DEV_TAP_COUNT) return;
+      taps = 0;
+      session.save.shards = DEV_SHARDS;
+      persistSave(session.save);
+      this.currencyLabel.setText(String(session.save.shards));
+      this.tweens.add({ targets: this.currencyLabel.root, scale: { from: 1.25, to: 1 }, duration: 260, ease: 'Back.easeOut' });
+      this.cameras.main.flash(180, 120, 200, 255);
+      if (this.tab) this.renderPopup();
+    });
   }
 
   private drawBackdrop(): void {
@@ -86,7 +115,7 @@ export class Lobby extends Phaser.Scene {
     const art = sizeSheetSprite(addSheetSprite(this, 'stage-bosses-sheet', this.stageIndex, 4), 760, 760).setPosition(540, 718).setAlpha(open ? 1 : 0.28);
     this.stageLayer.add(art);
     if (!open) this.stageLayer.add(this.add.text(540, 710, '잠김', { fontSize: '72px', color: '#ffffff', fontStyle: 'bold', stroke: '#293442', strokeThickness: 12 }).setOrigin(0.5));
-    this.stageLayer.add(this.add.text(540, 1040, `식량 ${stage.foodLimit}   ·   ${stage.id === 'INF' ? '무한 웨이브' : '5 웨이브'}`, {
+    this.stageLayer.add(this.add.text(540, 1040, `식량 ${foodLimitFor(stage.id, session.save)}   ·   ${stage.id === 'INF' ? '무한 웨이브' : '5 웨이브'}`, {
       fontSize: '30px', color: '#53616b', fontStyle: 'bold',
     }).setOrigin(0.5));
     this.stageLayer.add(makeButton(this, 540, 1145, open ? '시작' : '이전 스테이지 클리어 필요', () => this.startBattle(), {
@@ -114,15 +143,15 @@ export class Lobby extends Phaser.Scene {
   private startBattle(): void {
     const stage = stageData.stages[this.stageIndex]!;
     const saved = session.save.lastFormation.units.filter((id) => session.save.unlockedUnits.includes(id));
-    while (saved.reduce((sum, id) => sum + byId(unitData.units, id).food, 0) > stage.foodLimit) saved.pop();
+    const limit = foodLimitFor(stage.id, session.save);
+    while (saved.reduce((sum, id) => sum + byId(unitData.units, id).food, 0) > limit) saved.pop();
     if (!saved.length) {
       this.openFormation();
       return;
     }
     const food = saved.reduce((sum, id) => sum + byId(unitData.units, id).food, 0);
-    const recommended = Math.ceil((stage.foodLimit * 2) / 3);
-    if (food < recommended) {
-      this.showFoodWarning(food, stage.foodLimit, () => this.enterBattle(stage.id, saved));
+    if (food <= limit - FOOD_WARNING_SLACK) {
+      this.showFoodWarning(food, limit, () => this.enterBattle(stage.id, saved));
       return;
     }
     this.enterBattle(stage.id, saved);
@@ -145,7 +174,7 @@ export class Lobby extends Phaser.Scene {
     this.popup.add(this.add.text(540, 780, '식량이 많이 남았어요', {
       fontSize: '46px', color: '#293442', fontStyle: 'bold',
     }).setOrigin(0.5));
-    this.popup.add(this.add.text(540, 905, `현재 편성은 식량 ${food} / ${limit}만 사용합니다.\n식량의 2/3 이상을 편성하면 훨씬 안정적으로 싸울 수 있어요.\n이대로 입장할까요?`, {
+    this.popup.add(this.add.text(540, 905, `현재 편성은 식량 ${food} / ${limit}만 사용합니다.\n최대 식량에 가깝게 편성하면 훨씬 안정적으로 싸울 수 있어요.\n이대로 입장할까요?`, {
       fontSize: '27px', color: '#53616b', align: 'center', lineSpacing: 12,
     }).setOrigin(0.5));
     this.popup.add(makeButton(this, 335, 1110, '출격 편성', () => this.openFormation(), { width: 340, height: 100, fill: 0xd9cbb1, fontSize: 36 }));

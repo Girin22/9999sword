@@ -11,7 +11,7 @@ export type ForgeEvent = 'fail' | 'success' | 'great' | 'shape' | 'spirit' | 'or
 export interface EnhanceResult { state: ForgeState; materials: number; cost: number; events: ForgeEvent[] }
 
 export const createSword = (n = 0, kind = constants.forge.startKind): SwordInstance => ({ n, kind, trait: null, options: [], stacks: 0 });
-export const createForgeState = (): ForgeState => ({ ...createSword(), clicksTotal: 0, shapeCounter: 0, spiritCounter: 0, avatarReady: false, tutorialChaosAt: null, tutorialChaosGiven: false });
+export const createForgeState = (): ForgeState => ({ ...createSword(), clicksTotal: 0, shapeCounter: 0, spiritCounter: 0, successCount: 0, avatarReady: false, tutorialChaosAt: null, tutorialChaosGiven: false });
 export const forgeCost = (n: number): number => constants.forge.costBase + Math.floor(n / 5) * constants.forge.costPerFiveLevels;
 export const attackAtLevel = (n: number): number => (constants.forge.atk.base + constants.forge.atk.perLevel * n) * constants.forge.atk.breakthroughMult ** Math.floor(n / constants.forge.atk.breakthroughEvery);
 
@@ -23,6 +23,20 @@ const rollTier = (rng: RandomSource, level: number): number => {
 
 const traitPool = (axis: TraitAxis, tier: number, growth: ForgeGrowth) => traitData.traits.filter((trait) => trait.axis === axis && trait.tier === tier && (traitData.startPool.includes(trait.id) || growth.recipes.includes(trait.id)));
 const optionPool = (growth: ForgeGrowth) => optionsData.options.filter((option) => optionsData.startPool.includes(option.id) || growth.optionRecipes.includes(`opt:${option.id}`) || growth.optionRecipes.includes(option.id));
+
+/**
+ * Chance that a click raises the sword. Starts at the forge level's success+great rate and
+ * drops by `perStep` for every `everySuccesses` successes on the current sword, never below
+ * `minChance`. Tutorial guaranteed clicks always succeed. Resets when the sword is supplied.
+ */
+export function successChance(state: ForgeState, forgeLevel: number, context: ForgeContext): number {
+  if (context.tutorial && state.clicksTotal < constants.forge.tutorialStage1.guaranteedSuccessClicks) return 1;
+  const level = String(Math.min(3, Math.max(1, forgeLevel))) as '1' | '2' | '3';
+  const base = 1 - constants.forge.resultByForgeLevel[level].fail;
+  const decay = constants.forge.successDecay;
+  const steps = Math.floor(state.successCount / decay.everySuccesses);
+  return Math.max(decay.minChance, base - steps * decay.perStep);
+}
 
 export function enhance(current: ForgeState, materials: number, rng: RandomSource, growth: ForgeGrowth, context: ForgeContext): EnhanceResult {
   const cost = forgeCost(current.n);
@@ -36,12 +50,14 @@ export function enhance(current: ForgeState, materials: number, rng: RandomSourc
 
   const level = String(Math.min(3, Math.max(1, growth.forgeLevel))) as '1' | '2' | '3';
   const chances = constants.forge.resultByForgeLevel[level];
+  const chance = successChance(current, growth.forgeLevel, context);
+  // Fail probability follows the decayed chance; success/great keep their original ratio.
+  const greatShare = chances.great / (chances.success + chances.great);
   const r = rng.next();
   let gain = 0;
-  if (context.tutorial && state.clicksTotal <= constants.forge.tutorialStage1.guaranteedSuccessClicks) { gain = growth.enhancePerClick; events.push('success'); }
-  else if (r < chances.fail) events.push('fail');
-  else if (r < chances.fail + chances.success) { gain = growth.enhancePerClick; events.push('success'); }
-  else { gain = growth.enhancePerClick * 2; events.push('great'); }
+  if (r >= chance) events.push('fail');
+  else if (r < chance * (1 - greatShare)) { gain = growth.enhancePerClick; events.push('success'); state.successCount += 1; }
+  else { gain = growth.enhancePerClick * 2; events.push('great'); state.successCount += 1; }
   const beforeBreak = Math.floor(state.n / constants.forge.atk.breakthroughEvery);
   state.n += gain;
   if (Math.floor(state.n / constants.forge.atk.breakthroughEvery) > beforeBreak) events.push('breakthrough');

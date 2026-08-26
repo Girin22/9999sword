@@ -14,7 +14,7 @@ export interface PendingMonsterAttack {
   pattern?: string; targetPos?: Vec2; damageMult?: number; radius?: number; wallDamagePct?: number; knockback?: number; lineWidth?: number;
 }
 export interface ForgeState extends SwordInstance {
-  clicksTotal: number; shapeCounter: number; spiritCounter: number; avatarReady: boolean;
+  clicksTotal: number; shapeCounter: number; spiritCounter: number; successCount: number; avatarReady: boolean;
   tutorialChaosAt: number | null; tutorialChaosGiven: boolean;
 }
 export type UnitStateName = 'fight' | 'stunned' | 'returning' | 'resting' | 'mining' | 'avatar';
