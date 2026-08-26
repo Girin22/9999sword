@@ -4,6 +4,7 @@ import { byId, growthData, optionsData, stageData, traitData, unitData } from '.
 import { session } from '../session';
 import { FOOD_WARNING_SLACK, foodLimitFor } from '../sim/food';
 import { persistSave } from '../sim/save';
+import { showGuide } from '../ui/guide';
 import { addSheetSprite, COLORS, iconLabel, makeButton, paperPanel, sizeSheetSprite, titleText, type IconLabel } from '../ui/components';
 
 type LobbyTab = 'upgrade' | 'recipes';
@@ -34,6 +35,7 @@ export class Lobby extends Phaser.Scene {
   }
 
   create(): void {
+    showGuide('lobby');
     this.cameras.main.setBackgroundColor(COLORS.paper);
     this.drawBackdrop();
     titleText(this, 92, '9999+검키우기', 58);

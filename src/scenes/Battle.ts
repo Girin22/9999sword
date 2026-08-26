@@ -7,12 +7,14 @@ import { awardBattle, BattleSimulation } from '../sim/battle';
 import { SeededRng } from '../sim/rng';
 import { persistSave } from '../sim/save';
 import { COLORS } from '../ui/components';
+import { showGuide } from '../ui/guide';
 import { L } from '../ui/layout';
 
 export class Battle extends Phaser.Scene {
   sim!: BattleSimulation; private unitRigs = new Map<string, UnitRig>(); private monsterRigs = new Map<string, MonsterRig>(); private finished = false; private sfx!: SfxMixer;
   constructor() { super('Battle'); }
   create(): void {
+    showGuide('battle');
     this.drawWorld(); this.sfx = new SfxMixer(this); this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.sfx.destroy()); this.sim = new BattleSimulation(session.stageId, session.formation, session.miner, session.save);
     for (const unit of this.sim.units) this.unitRigs.set(unit.uid, createUnitRig(this, unit));
     this.scene.launch('BattleHUD', { sim: this.sim });

@@ -4,6 +4,7 @@ import { byId, unitData } from '../data';
 import { session } from '../session';
 import { foodLimitFor } from '../sim/food';
 import { persistSave } from '../sim/save';
+import { showGuide } from '../ui/guide';
 import { addSheetSprite, COLORS, makeButton, paperPanel, sizeSheetSprite, titleText } from '../ui/components';
 
 const PREFERRED_MINER = 'ireukkun';
@@ -22,6 +23,7 @@ export class Formation extends Phaser.Scene {
   }
 
   create(): void {
+    showGuide('formation');
     this.cameras.main.setBackgroundColor(COLORS.paper);
     const limit = foodLimitFor(session.stageId, session.save);
     this.selected = session.save.lastFormation.units.filter((id) => session.save.unlockedUnits.includes(id));

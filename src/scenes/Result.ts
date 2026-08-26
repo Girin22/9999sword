@@ -3,6 +3,7 @@ import { addBgmToggle } from '../audio/bgm';
 import { byId, stageData } from '../data';
 import { session } from '../session';
 import { COLORS, makeButton, paperPanel, titleText } from '../ui/components';
+import { hideGuide } from '../ui/guide';
 
 export class Result extends Phaser.Scene {
   constructor() {
@@ -10,6 +11,7 @@ export class Result extends Phaser.Scene {
   }
 
   create(): void {
+    hideGuide();
     this.cameras.main.setBackgroundColor(COLORS.paper);
     const result = session.result;
     if (!result) {

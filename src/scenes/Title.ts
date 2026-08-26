@@ -1,10 +1,12 @@
 import Phaser from 'phaser';
 import { addBgmToggle } from '../audio/bgm';
 import { COLORS, makeButton } from '../ui/components';
+import { hideGuide } from '../ui/guide';
 
 export class Title extends Phaser.Scene {
   constructor() { super('Title'); }
   create(): void {
+    hideGuide();
     this.cameras.main.setBackgroundColor(COLORS.paper);
     const image = this.add.image(540, 960, 'title-hero');
     image.setScale(Math.max(1080 / image.width, 1920 / image.height));
