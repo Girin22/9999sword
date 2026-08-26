@@ -5,7 +5,7 @@ import { session } from '../session';
 import { BattleSimulation, traitName } from '../sim/battle';
 import { attackAtLevel, forgeCost } from '../sim/forge';
 import { resetSave } from '../sim/save';
-import { addSheetSprite, animateHolo, applyHolo, clearHolo, COLORS, iconLabel, makeButton, paperPanel, sizeSheetSprite, type HoloAxis, type HoloFx, type IconLabel } from '../ui/components';
+import { addSheetSprite, COLORS, holoOutline, iconLabel, makeButton, paperPanel, sizeSheetSprite, type HoloAxis, type HoloOutline, type IconLabel } from '../ui/components';
 import { L } from '../ui/layout';
 
 type Building = 'forge' | 'barracks' | 'mine';
@@ -20,9 +20,11 @@ export class BattleHUD extends Phaser.Scene {
   private forgeFill!: Phaser.GameObjects.Graphics;
   private spiritLabel!: Phaser.GameObjects.Text;
   private forgeButton!: Phaser.GameObjects.Container;
-  private forgeHolo: HoloFx | null = null;
+  private forgeHolo: HoloOutline | null = null;
   private swordPanel?: Phaser.GameObjects.Container;
-  private swordHolo: HoloFx | null = null;
+  private swordHolo: HoloOutline | null = null;
+  /** While a spirit reveal is playing: the enhance button is locked and the forge sparkles. */
+  private reveal: { axis: HoloAxis; until: number } | null = null;
   private selection!: Phaser.GameObjects.Graphics;
   private speedLabel!: Phaser.GameObjects.Text;
   private tooltipLayer?: Phaser.GameObjects.Container;
@@ -115,6 +117,7 @@ export class BattleHUD extends Phaser.Scene {
   private renderAction(): void {
     this.action.destroy(true);
     this.swordPanel = undefined;
+    this.swordHolo?.destroy();
     this.swordHolo = null;
     this.action = this.add.container(0, 0).setDepth(20);
     const rect = L.buildings[this.selected];
@@ -138,11 +141,13 @@ export class BattleHUD extends Phaser.Scene {
         (L.actionBar.y0 + L.actionBar.y1) / 2,
         '',
         () => {
-          this.sim.enhance();
+          if (this.reveal) return;
+          const events = this.sim.enhance();
+          if (events.includes('spirit')) this.revealSpirit(events.includes('avatar') ? 'order' : events.includes('chaos') ? 'chaos' : 'order');
           this.renderAction();
           this.refreshTooltip();
         },
-        { width: buttonWidth, height: L.actionBar.y1 - L.actionBar.y0, fill: 0xf5c95d },
+        { width: buttonWidth, height: L.actionBar.y1 - L.actionBar.y0, fill: this.reveal ? 0xbdb6a6 : 0xf5c95d, disabled: Boolean(this.reveal) },
       );
       // Big label filling the button on the left, cost with the ore icon flush right.
       enhanceButton.add(this.add.text(-buttonWidth / 2 + 44, 0, '강화하기', { fontSize: '68px', color: '#293442', fontStyle: 'bold' }).setOrigin(0, 0.5));
@@ -151,23 +156,33 @@ export class BattleHUD extends Phaser.Scene {
       this.action.add(enhanceButton);
     } else if (this.selected === 'barracks') {
       const classes = [
-        { id: 'knight' as const, icon: '♜' },
-        { id: 'thrower' as const, icon: '➶' },
-        { id: 'mage' as const, icon: '⚑' },
+        { id: 'knight' as const, icon: '♜', color: '#3f7fc4', fill: 0xd6e6f6 },
+        { id: 'thrower' as const, icon: '➶', color: '#d2862e', fill: 0xfbe6cc },
+        { id: 'mage' as const, icon: '⚑', color: '#7d5fb8', fill: 0xe6dcf5 },
       ];
+      const slotH = L.actionBar.y1 - L.actionBar.y0;
       classes.forEach((entry, index) => {
-        const levels = this.sim.units.filter((unit) => unit.class === entry.id).map((unit) => unit.sword.n);
-        const level = levels.length ? Math.max(...levels) : 0;
-        this.action.add(
-          makeButton(this, L.actionBar.slots[index]!.x + L.actionBar.slotW / 2, (L.actionBar.y0 + L.actionBar.y1) / 2, `${entry.icon}\n+${level}`, () => this.sim.supply(entry.id), {
-            width: L.actionBar.slotW,
-            height: L.actionBar.y1 - L.actionBar.y0,
-            fontSize: 35,
-            fill: 0xdce7eb,
-          }),
-        );
+        const members = this.sim.units.filter((unit) => unit.class === entry.id);
+        const present = members.length > 0;
+        const level = present ? Math.max(...members.map((unit) => unit.sword.n)) : 0;
+        const button = makeButton(this, L.actionBar.slots[index]!.x + L.actionBar.slotW / 2, (L.actionBar.y0 + L.actionBar.y1) / 2, '', () => this.sim.supply(entry.id), {
+          width: L.actionBar.slotW,
+          height: slotH,
+          fill: present ? entry.fill : 0xb9b5ab,
+          disabled: !present,
+        });
+        if (present) {
+          button.add(this.add.text(0, -26, entry.icon, { fontSize: '54px', color: entry.color, fontStyle: 'bold', stroke: '#ffffff', strokeThickness: 6 }).setOrigin(0.5));
+          button.add(this.add.text(0, 40, `+${level}`, { fontSize: '30px', color: '#293442', fontStyle: 'bold' }).setOrigin(0.5));
+        } else {
+          button.add(this.add.text(0, -26, entry.icon, { fontSize: '54px', color: '#8a877e', fontStyle: 'bold' }).setOrigin(0.5).setAlpha(0.55));
+          button.add(this.chainLock(L.actionBar.slotW, slotH));
+        }
+        this.action.add(button);
       });
-      this.action.add(makeButton(this, L.actionBar.right.x + L.actionBar.right.w / 2, (L.actionBar.y0 + L.actionBar.y1) / 2, '♥', () => this.sim.recover(), { width: L.actionBar.right.w, height: L.actionBar.y1 - L.actionBar.y0, fontSize: 52, fill: 0xe5a2a2 }));
+      const recover = makeButton(this, L.actionBar.right.x + L.actionBar.right.w / 2, (L.actionBar.y0 + L.actionBar.y1) / 2, '', () => this.sim.recover(), { width: L.actionBar.right.w, height: slotH, fill: 0xf7d9d9 });
+      recover.add(this.medicalCross());
+      this.action.add(recover);
     } else {
       const assigned = this.sim.mineAssigneeUid ? this.sim.units.find((unit) => unit.uid === this.sim.mineAssigneeUid) : undefined;
       const mining = assigned?.state === 'mining';
@@ -233,7 +248,8 @@ export class BattleHUD extends Phaser.Scene {
    */
   private drawSpiritGauge(counter: number, trait: string | null, avatarReady: boolean, time: number): void {
     const rect = L.buildings.forge;
-    const axis = this.forgeAxis(trait, avatarReady);
+    const traitAxis = this.forgeAxis(trait, avatarReady);
+    const axis = this.reveal?.axis ?? null;
     const pips = constants.forge.spirit.pityClicks;
     const filled = axis ? pips : Math.min(pips, counter);
     const gap = 5;
@@ -251,15 +267,90 @@ export class BattleHUD extends Phaser.Scene {
     this.spiritLabel.setText(axis ? (avatarReady ? '신의 강림!' : axis === 'chaos' ? '혼돈의 기운!' : '질서의 기운!') : `장인의 기운 ${Math.min(pips, counter)}/${pips}`);
     this.spiritLabel.setColor(axis === 'chaos' ? '#ffd0e0' : axis === 'order' ? '#d8f6ff' : '#ffffff');
     if ((this.forgeHolo?.axis ?? null) !== axis) {
-      if (axis) { this.forgeHolo = applyHolo(this.forgeButton, axis); this.tweens.add({ targets: this.forgeButton, scale: { from: 1.06, to: 1 }, duration: 260, ease: 'Back.easeOut' }); }
-      else { clearHolo(this.forgeButton); this.forgeHolo = null; }
+      this.forgeHolo?.destroy();
+      this.forgeHolo = axis ? holoOutline(this, rect.x, rect.y, rect.w, rect.h, 30, axis, 12) : null;
+      if (axis) this.tweens.add({ targets: this.forgeButton, scale: { from: 1.06, to: 1 }, duration: 260, ease: 'Back.easeOut' });
     }
-    if (this.forgeHolo) animateHolo(this.forgeHolo, time);
-    if (this.swordPanel && (this.swordHolo?.axis ?? null) !== axis) {
-      if (axis) this.swordHolo = applyHolo(this.swordPanel, axis);
-      else { clearHolo(this.swordPanel); this.swordHolo = null; }
+    this.forgeHolo?.update(time);
+    if (this.swordPanel && (this.swordHolo?.axis ?? null) !== traitAxis) {
+      this.swordHolo?.destroy();
+      this.swordHolo = traitAxis ? holoOutline(this, 70, L.actionBar.y0, 210, L.actionBar.y1 - L.actionBar.y0, 32, traitAxis, 25) : null;
     }
-    if (this.swordHolo) animateHolo(this.swordHolo, time, 1.3);
+    this.swordHolo?.update(time + 700);
+  }
+
+  /**
+   * Spirit landed: flash, sparkle the forge for a moment, lock enhancing, and announce the
+   * trait in the middle of the screen. Afterwards the forge returns to normal with the
+   * gauge back at 0 (the forge sword keeps the trait — the sword panel stays marked).
+   */
+  private revealSpirit(axis: HoloAxis): void {
+    const forge = this.sim.forge;
+    const trait = forge.trait ? traitData.traits.find((entry) => entry.id === forge.trait) : undefined;
+    const avatar = forge.avatarReady;
+    const holdMs = 1900;
+    this.reveal = { axis, until: this.time.now + holdMs };
+
+    // Flash.
+    const flash = this.add.rectangle(540, 960, 1080, 1920, axis === 'chaos' ? 0xffd6e4 : 0xe4f8ff, 0.85).setDepth(90);
+    this.tweens.add({ targets: flash, alpha: 0, duration: 520, ease: 'Quad.easeOut', onComplete: () => flash.destroy() });
+    this.cameras.main.shake(140, 0.004);
+
+    // Centre card.
+    const title = avatar ? '신의 강림!' : axis === 'chaos' ? '혼돈의 기운!' : '질서의 기운!';
+    const accent = axis === 'chaos' ? 0xffdce6 : 0xdff4ff;
+    const card = this.add.container(540, 900).setDepth(92).setScale(0.6).setAlpha(0);
+    card.add(paperPanel(this, -420, -190, 840, 380, accent));
+    card.add(this.add.text(0, -110, title, { fontSize: '58px', color: axis === 'chaos' ? '#b8325e' : '#2d78a8', fontStyle: 'bold', stroke: '#ffffff', strokeThickness: 8 }).setOrigin(0.5));
+    card.add(this.add.text(0, -18, avatar ? '데미갓' : trait?.name ?? '', { fontSize: '46px', color: '#293442', fontStyle: 'bold' }).setOrigin(0.5));
+    card.add(this.add.text(0, 90, avatar ? '보급 시 가장 튼튼한 병사가 신의 화신으로 강림합니다.' : trait?.desc ?? '', { fontSize: '26px', color: '#53616b', align: 'center', wordWrap: { width: 740 }, lineSpacing: 8 }).setOrigin(0.5));
+    const outline = holoOutline(this, -420, -190, 840, 380, 32, axis, 0);
+    card.add(outline.graphics);
+    const tick = (): void => outline.update(this.time.now);
+    this.events.on(Phaser.Scenes.Events.UPDATE, tick);
+    this.tweens.add({ targets: card, scale: 1, alpha: 1, duration: 320, ease: 'Back.easeOut' });
+    this.time.delayedCall(holdMs - 350, () => this.tweens.add({ targets: card, alpha: 0, scale: 0.9, duration: 300, ease: 'Quad.easeIn', onComplete: () => { this.events.off(Phaser.Scenes.Events.UPDATE, tick); card.destroy(true); } }));
+
+    // Unlock: forge back to normal, gauge already at 0 from the sim.
+    this.time.delayedCall(holdMs, () => {
+      this.reveal = null;
+      this.renderAction();
+      this.refreshTooltip();
+    });
+  }
+
+  /** Hospital-style "+" badge: white cross on a red rounded disc, used for the barracks recover button. */
+  private medicalCross(): Phaser.GameObjects.Graphics {
+    const g = this.add.graphics();
+    g.fillStyle(0xd94b5d, 1).lineStyle(6, COLORS.ink, 1).fillCircle(0, 4, 50).strokeCircle(0, 4, 50);
+    g.fillStyle(0xffffff, 0.35).fillEllipse(-12, -16, 34, 22);
+    g.fillStyle(0xffffff, 1).fillRoundedRect(-12, -28, 24, 64, 6).fillRoundedRect(-32, -8, 64, 24, 6);
+    return g;
+  }
+
+  /** Grey chains crossing the slot in an X, with a small padlock at the crossing — "no unit of this class this stage". */
+  private chainLock(width: number, height: number): Phaser.GameObjects.Graphics {
+    const g = this.add.graphics();
+    const links = 7;
+    const drawChain = (dir: 1 | -1): void => {
+      for (let i = 0; i <= links; i += 1) {
+        const t = i / links;
+        const x = -width / 2 + 18 + (width - 36) * t;
+        const y = dir * (-height / 2 + 18 + (height - 36) * t);
+        const angle = Math.atan2(dir * (height - 36), width - 36);
+        const cos = Math.cos(angle); const sin = Math.sin(angle);
+        // Each link is a small rounded rectangle rotated along the chain direction.
+        const w = 22; const h = 12;
+        const corners = [[-w / 2, -h / 2], [w / 2, -h / 2], [w / 2, h / 2], [-w / 2, h / 2]].map(([px, py]) => ({ x: x + px! * cos - py! * sin, y: y + px! * sin + py! * cos }));
+        g.fillStyle(i % 2 ? 0x8d8d86 : 0xa9a9a1, 1).lineStyle(3, 0x4b4b47, 1).fillPoints(corners, true).strokePoints(corners, true);
+      }
+    };
+    drawChain(1);
+    drawChain(-1);
+    g.fillStyle(0x6e6e68, 1).lineStyle(4, 0x3d3d3a, 1).fillRoundedRect(-22, -10, 44, 36, 8).strokeRoundedRect(-22, -10, 44, 36, 8);
+    g.lineStyle(6, 0x8d8d86, 1).beginPath().arc(0, -12, 13, Math.PI, 0, false).strokePath();
+    g.fillStyle(0x2f2f2c, 1).fillCircle(0, 6, 5).fillRect(-2, 6, 4, 10);
+    return g;
   }
 
   private showMenu(): void {

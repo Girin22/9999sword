@@ -73,7 +73,7 @@ const PRESS_HOLD_MS = 90;
 const PRESS_FIRE_DELAY_MS = 40;
 
 export type HoloAxis = "order" | "chaos";
-export interface HoloFx { glow?: Phaser.FX.Glow; shine?: Phaser.FX.Shine; axis: HoloAxis }
+export interface HoloFx { glow?: Phaser.FX.Glow; axis: HoloAxis }
 export const HOLO_PALETTE: Record<HoloAxis, { glow: number; glowAlt: number; spark: number[]; }> = {
   order: { glow: 0x5ad8ff, glowAlt: 0xffffff, spark: [0xffffff, 0x8ff0ff, 0xc9b8ff] },
   chaos: { glow: 0xff3d7a, glowAlt: 0xb04dff, spark: [0xff5a5a, 0xff3dd0, 0xffb347] },
@@ -89,9 +89,46 @@ export function applyHolo(target: { postFX?: Phaser.GameObjects.Components.FX | 
   if (!fx) return { axis };
   fx.clear();
   const palette = HOLO_PALETTE[axis];
-  const glow = axis === "order" ? fx.addGlow(palette.glow, 5, 0.6, false, 0.14, 24) : fx.addGlow(palette.glow, 7, 1.1, false, 0.14, 28);
-  const shine = axis === "order" ? fx.addShine(0.45, 0.42, 4) : fx.addShine(1.15, 0.22, 6, true);
-  return { glow, shine, axis };
+  // Outer-only glow: innerStrength 0 keeps the sprite itself untouched and lights just the silhouette edge.
+  const glow = axis === "order" ? fx.addGlow(palette.glow, 4, 0, false, 0.12, 16) : fx.addGlow(palette.glow, 5, 0, false, 0.12, 18);
+  return { glow, axis };
+}
+
+/**
+ * Sparkling outline drawn in front of a button/panel (no post-processing, the body stays opaque).
+ * A coloured stroke pulses along the rounded rect and a handful of stars ride the perimeter.
+ */
+export interface HoloOutline { graphics: Phaser.GameObjects.Graphics; axis: HoloAxis; update(time: number): void; destroy(): void }
+export function holoOutline(scene: Phaser.Scene, x: number, y: number, width: number, height: number, radius: number, axis: HoloAxis, depth = 30): HoloOutline {
+  const graphics = scene.add.graphics().setDepth(depth).setBlendMode(Phaser.BlendModes.ADD);
+  const palette = HOLO_PALETTE[axis];
+  const rect = new Phaser.Geom.Rectangle(x, y, width, height);
+  const stars = axis === "order" ? 6 : 9;
+  const update = (time: number): void => {
+    if (!graphics.active) return;
+    const g = graphics.clear();
+    const wave = axis === "order" ? 0.5 + 0.5 * Math.sin(time * 0.004) : Math.max(0.15, Math.sin(time * 0.02) * Math.sin(time * 0.0071));
+    const from = Phaser.Display.Color.ValueToColor(palette.glow); const to = Phaser.Display.Color.ValueToColor(palette.glowAlt);
+    const mixed = Phaser.Display.Color.Interpolate.ColorWithColor(from, to, 100, Math.round(wave * 100));
+    const color = Phaser.Display.Color.GetColor(mixed.r, mixed.g, mixed.b);
+    // Soft outer halo + crisp inner line.
+    g.lineStyle(14, color, 0.18 + wave * 0.2).strokeRoundedRect(x - 5, y - 5, width + 10, height + 10, radius + 5);
+    g.lineStyle(5, color, 0.55 + wave * 0.45).strokeRoundedRect(x, y, width, height, radius);
+    // Stars travelling around the perimeter.
+    const speed = axis === "order" ? 0.00012 : 0.00032;
+    for (let i = 0; i < stars; i += 1) {
+      const t = ((i / stars) + time * speed) % 1;
+      const p = Phaser.Geom.Rectangle.GetPoint(rect, t);
+      const tint = palette.spark[i % palette.spark.length]!;
+      const twinkle = axis === "order" ? 0.6 + 0.4 * Math.sin(time * 0.007 + i * 1.3) : Math.max(0.25, Math.sin(time * 0.05 + i * 2.1));
+      const size = (axis === "order" ? 5 : 4) + 4 * twinkle;
+      g.fillStyle(tint, twinkle);
+      g.fillPoints([{ x: p.x, y: p.y - size * 2 }, { x: p.x + size * 0.55, y: p.y }, { x: p.x, y: p.y + size * 2 }, { x: p.x - size * 0.55, y: p.y }], true);
+      g.fillPoints([{ x: p.x - size * 2, y: p.y }, { x: p.x, y: p.y - size * 0.55 }, { x: p.x + size * 2, y: p.y }, { x: p.x, y: p.y + size * 0.55 }], true);
+      g.fillStyle(0xffffff, twinkle * 0.9).fillCircle(p.x, p.y, size * 0.35);
+    }
+  };
+  return { graphics, axis, update, destroy: () => graphics.destroy() };
 }
 
 export function clearHolo(target: { postFX?: Phaser.GameObjects.Components.FX | null }): void {
@@ -103,7 +140,7 @@ export function animateHolo(holo: HoloFx, time: number, phase = 0): void {
   if (!holo.glow) return;
   const palette = HOLO_PALETTE[holo.axis];
   const wave = holo.axis === "order" ? 0.5 + 0.5 * Math.sin(time * 0.004 + phase) : Math.max(0, Math.sin(time * 0.021 + phase) * Math.sin(time * 0.0073 + phase * 2)) ;
-  holo.glow.outerStrength = holo.axis === "order" ? 4 + wave * 4 : 5 + wave * 7;
+  holo.glow.outerStrength = holo.axis === "order" ? 3 + wave * 3 : 3.5 + wave * 5;
   const mix = holo.axis === "order" ? wave : 0.5 + 0.5 * Math.sin(time * 0.006 + phase);
   const from = Phaser.Display.Color.ValueToColor(palette.glow); const to = Phaser.Display.Color.ValueToColor(palette.glowAlt);
   const blended = Phaser.Display.Color.Interpolate.ColorWithColor(from, to, 100, Math.round(mix * 100));

@@ -200,18 +200,17 @@ export function syncUnitRig(rig: UnitRig, unit: Unit, time = 0): void {
   const chaos = trait?.axis === 'chaos';
   const hueBase = chaos ? 0.92 : 0.55;
   sizeSheetSprite(rig.weaponArt, 88 + thick * 0.35, length).setVisible(swordVisible);
-  if (holo) rig.weaponArt.setTint(holoColor(time, hueBase, 0.55, 1), holoColor(time, hueBase + 0.33, 0.55, 1), holoColor(time, hueBase + 0.66, 0.55, 1), 0xffffff);
-  else rig.weaponArt.clearTint();
+  rig.weaponArt.clearTint();
   const pulse = 0.5 + 0.5 * Math.sin(time * 0.012 + phase);
   const glowScale = 1.28 + pulse * 0.16;
   sizeSheetSprite(rig.weaponGlowArt, (100 + thick * 0.35) * glowScale, (length + 12) * glowScale)
     .setTint(holoColor(time, hueBase), holoColor(time, hueBase + 0.5), holoColor(time, hueBase + 0.25), holoColor(time, hueBase + 0.75))
     .setAlpha(0.85 + pulse * 0.15)
-    .setVisible(holo);
+    .setVisible(false);
   sizeSheetSprite(rig.weaponHoloArt, (100 + thick * 0.35) * (glowScale + 0.22), (length + 12) * (glowScale + 0.22))
     .setTint(holoColor(time, hueBase + 0.5), holoColor(time, hueBase), holoColor(time, hueBase + 0.75), holoColor(time, hueBase + 0.25))
     .setAlpha(0.55 + (1 - pulse) * 0.35)
-    .setVisible(holo);
+    .setVisible(false);
   // Outline holo: glow + shine follow the blade alpha; sparks trace the edges.
   const traitId = holo ? unit.sword.trait : null;
   if (traitId !== rig.lastTrait) {
