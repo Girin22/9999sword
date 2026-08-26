@@ -3,11 +3,12 @@
   "stages": [
     {
       "id": "S1",
-      "name": "첫 독촉장",
-      "foodLimit": 10,
+      "name": "초원의 성문",
+      "bossName": "황금 뿔 수문장",
+      "foodLimit": 8,
       "stageIndex": 1,
       "tutorial": true,
-      "wallSecondsMult": 1.0,
+      "wallSecondsMult": 1,
       "waves": [
         {
           "mobs": {
@@ -64,8 +65,9 @@
     },
     {
       "id": "S2",
-      "name": "두 번째 독촉장",
-      "foodLimit": 15,
+      "name": "산호빛 해안",
+      "bossName": "산호 왕 네레우스",
+      "foodLimit": 10,
       "stageIndex": 2,
       "wallSecondsMult": 0.9,
       "waves": [
@@ -129,7 +131,8 @@
     },
     {
       "id": "S3",
-      "name": "최후통첩",
+      "name": "천둥 대장간",
+      "bossName": "천둥 거인 브론테스",
       "foodLimit": 12,
       "stageIndex": 3,
       "wallSecondsMult": 0.8,
@@ -194,15 +197,16 @@
       "unlocksOnClear": [
         "hote"
       ],
-      "endingLine": "신들이 다음 독촉장을 보냈다."
+      "endingLine": "무한의 균열이 열렸다."
     },
     {
       "id": "INF",
-      "name": "무한 독촉",
-      "foodLimit": 12,
+      "name": "무한의 균열",
+      "bossName": "별을 삼킨 케르베로스",
+      "foodLimit": 20,
       "stageIndex": 3,
-      "repeatOf": "S3",
       "loopScaling": {
+        "bossMultPerAppearance": 1.2,
         "hpAtkMultPerLoop": 1.3,
         "defAddPerLoop": 15,
         "wallSecondsMultPerLoop": 0.95,
@@ -215,7 +219,52 @@
         "randomMax": 40,
         "failPerWave": 10
       },
-      "unlock": "clear:S3"
+      "unlock": "clear:S3",
+      "mobCountMult": 1.5,
+      "$comment": "무한 모드: 몹 수 1.5배, 보스는 등장할 때마다 1.2배씩 강해지며 4보스(S1·S2·S3 보스 + 케르베로스)가 로테이션. bossStage = 패턴/외형에 쓰는 보스 키",
+      "waves": [
+        {
+          "mobs": {
+            "calf": 8,
+            "harpy": 4,
+            "hoplite": 2
+          },
+          "giant": "zeus",
+          "bossStage": "S1",
+          "bossName": "황금 뿔 수문장"
+        },
+        {
+          "mobs": {
+            "calf": 10,
+            "harpy": 5,
+            "hoplite": 4
+          },
+          "giant": "zeus",
+          "bossStage": "S2",
+          "bossName": "산호 왕 네레우스"
+        },
+        {
+          "mobs": {
+            "calf": 12,
+            "satyr": 5,
+            "hoplite": 5
+          },
+          "giant": "zeus",
+          "bossStage": "S3",
+          "bossName": "천둥 거인 브론테스"
+        },
+        {
+          "mobs": {
+            "calf": 12,
+            "harpy": 6,
+            "satyr": 4,
+            "hoplite": 6
+          },
+          "giant": "zeus",
+          "bossStage": "INF",
+          "bossName": "별을 삼킨 케르베로스"
+        }
+      ]
     }
   ],
   "recipeDropChance": 0.6,

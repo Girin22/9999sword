@@ -1,25 +1,144 @@
 {
   "$comment": "유닛 고유 스탯은 hp·def·food 셋뿐. 공격력·속도·사거리는 검에서 온다. option은 src/sim/units.ts에서 id로 분기.",
   "classes": {
-    "knight":  { "name": "기사",   "attack": "melee",  "hasShieldVariant": true },
-    "thrower": { "name": "투검사", "attack": "ranged", "projectileByKind": { "knightSword": "swordWave", "spear": "spearWave" } },
-    "mage":    { "name": "마검사", "attack": "flag",   "carriesFlag": true }
+    "knight": {
+      "name": "기사",
+      "attack": "melee",
+      "hasShieldVariant": true
+    },
+    "thrower": {
+      "name": "투검사",
+      "attack": "ranged",
+      "projectileByKind": {
+        "knightSword": "swordWave",
+        "spear": "spearWave"
+      }
+    },
+    "mage": {
+      "name": "마검사",
+      "attack": "flag",
+      "carriesFlag": true
+    }
   },
   "units": [
-    { "id": "ireukkun",  "name": "이르꾼", "class": "knight",  "food": 1, "hp": 100, "def": 10, "shield": false,
-      "option": { "id": "none" }, "unlock": "start", "role": "싼 민병대 / 광부. 기준점" },
-    { "id": "ttekkai",   "name": "떼까이", "class": "knight",  "food": 4, "hp": 120, "def": 40, "shield": true,
-      "option": { "id": "tank", "damageReduction": 0.30 }, "unlock": "start", "role": "방패 탱커" },
-    { "id": "daegeomeu", "name": "대거므", "class": "knight",  "food": 3, "hp": 120, "def": 20, "shield": true,
-      "option": { "id": "greatswordMaster", "kind": "greatsword", "weightAs": 1, "kindOptionMult": 1.05 }, "unlock": "clear:S1", "role": "대검 딜러" },
-    { "id": "hareubang", "name": "하르방", "class": "thrower", "food": 2, "hp": 70,  "def": 5,  "shield": false,
-      "option": { "id": "unhitHaste", "attackSpeedBonus": 0.20 }, "unlock": "start", "role": "안정 원거리 (검기)" },
-    { "id": "podong",    "name": "포동",   "class": "thrower", "food": 3, "hp": 80,  "def": 8,  "shield": false,
-      "option": { "id": "spearMaster", "category": "spear", "atkBonus": 0.20 }, "unlock": "clear:S2", "role": "고딜 원거리 (창기)" },
-    { "id": "dongki",    "name": "동키",   "class": "mage",    "food": 4, "hp": 90,  "def": 12, "shield": false, "flag": "buff",
-      "option": { "id": "orderHaste", "stackSpeedMult": 1.5 }, "unlock": "start", "role": "깃발 버프" },
-    { "id": "hote",      "name": "호테",   "class": "mage",    "food": 4, "hp": 90,  "def": 12, "shield": false, "flag": "debuff",
-      "option": { "id": "debuffMaster", "debuffBonusPoints": 0.30 }, "unlock": "clear:S3", "role": "깃발 디버프" }
+    {
+      "id": "ireukkun",
+      "name": "이르꾼",
+      "class": "knight",
+      "food": 1,
+      "hp": 100,
+      "def": 10,
+      "shield": false,
+      "option": {
+        "id": "none"
+      },
+      "unlock": "start",
+      "role": "싼 민병대 / 광부. 기준점"
+    },
+    {
+      "id": "ttekkai",
+      "name": "떼까이",
+      "class": "knight",
+      "food": 4,
+      "hp": 120,
+      "def": 40,
+      "shield": true,
+      "option": {
+        "id": "tank",
+        "damageReduction": 0.3
+      },
+      "unlock": "start",
+      "role": "방패 탱커"
+    },
+    {
+      "id": "daegeomeu",
+      "name": "대거므",
+      "class": "knight",
+      "food": 3,
+      "hp": 120,
+      "def": 20,
+      "shield": true,
+      "option": {
+        "id": "greatswordMaster",
+        "kind": "greatsword",
+        "weightAs": 1,
+        "kindOptionMult": 1.05
+      },
+      "unlock": "clear:S1",
+      "role": "대검 딜러"
+    },
+    {
+      "id": "hareubang",
+      "name": "하르방",
+      "class": "thrower",
+      "food": 2,
+      "hp": 70,
+      "def": 5,
+      "shield": false,
+      "option": {
+        "id": "unhitHaste",
+        "attackSpeedBonus": 0.2
+      },
+      "unlock": "start",
+      "role": "안정 원거리 (검기)"
+    },
+    {
+      "id": "podong",
+      "name": "포동",
+      "class": "thrower",
+      "food": 3,
+      "hp": 80,
+      "def": 8,
+      "shield": false,
+      "option": {
+        "id": "spearMaster",
+        "category": "spear",
+        "atkBonus": 0.2
+      },
+      "unlock": "clear:S2",
+      "role": "고딜 원거리 (창기)"
+    },
+    {
+      "id": "dongki",
+      "name": "동키",
+      "class": "mage",
+      "food": 3,
+      "hp": 90,
+      "def": 12,
+      "shield": false,
+      "flag": "buff",
+      "option": {
+        "id": "orderHaste",
+        "stackSpeedMult": 1.5
+      },
+      "unlock": "start",
+      "role": "깃발 버프 + 장판 피해",
+      "field": {
+        "$comment": "깃발 버프 장판: 반경(flagRadius) 안의 적에게 초당 atk*damageMultPerSec 피해",
+        "damageMultPerSec": 0.35
+      }
+    },
+    {
+      "id": "hote",
+      "name": "호테",
+      "class": "mage",
+      "food": 4,
+      "hp": 90,
+      "def": 12,
+      "shield": false,
+      "flag": "debuff",
+      "option": {
+        "id": "debuffMaster",
+        "debuffBonusPoints": 0.3
+      },
+      "unlock": "clear:S3",
+      "role": "깃발 디버프"
+    }
   ],
-  "startUnlocked": ["ireukkun", "ttekkai", "hareubang", "dongki"]
+  "startUnlocked": [
+    "ireukkun",
+    "ttekkai",
+    "hareubang",
+    "dongki"
+  ]
 }

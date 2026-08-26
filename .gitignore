@@ -1,5 +1,9 @@
 node_modules/
 dist/
 .vite/
+coverage/
 *.log
 .DS_Store
+*.tsbuildinfo
+.playwright-cli/
+output/playwright/

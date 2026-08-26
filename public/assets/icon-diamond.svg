@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <linearGradient id="crown" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e6f7ff"/>
+      <stop offset="1" stop-color="#7fd0ff"/>
+    </linearGradient>
+    <linearGradient id="pavilion" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4fa9ee"/>
+      <stop offset="1" stop-color="#1f5fb8"/>
+    </linearGradient>
+  </defs>
+  <!-- shadow -->
+  <ellipse cx="64" cy="114" rx="34" ry="7" fill="#293442" opacity="0.22"/>
+  <!-- pavilion (lower body) -->
+  <path d="M12 50 L64 112 L116 50 Z" fill="url(#pavilion)" stroke="#293442" stroke-width="6" stroke-linejoin="round"/>
+  <!-- crown (upper body) -->
+  <path d="M30 20 L98 20 L116 50 L12 50 Z" fill="url(#crown)" stroke="#293442" stroke-width="6" stroke-linejoin="round"/>
+  <!-- facet lines -->
+  <g stroke="#293442" stroke-width="3.5" stroke-linejoin="round" fill="none" opacity="0.85">
+    <path d="M30 20 L44 50 L64 112"/>
+    <path d="M98 20 L84 50 L64 112"/>
+    <path d="M44 50 L84 50"/>
+    <path d="M64 20 L44 50"/>
+    <path d="M64 20 L84 50"/>
+  </g>
+  <!-- inner facet tints -->
+  <path d="M44 50 L84 50 L64 112 Z" fill="#8fd6ff" opacity="0.45"/>
+  <path d="M44 50 L64 20 L84 50 Z" fill="#ffffff" opacity="0.5"/>
+  <!-- highlights -->
+  <path d="M36 26 L54 26 L46 42 L32 42 Z" fill="#ffffff" opacity="0.8"/>
+  <path d="M24 56 L40 56 L56 84 Z" fill="#ffffff" opacity="0.3"/>
+  <!-- sparkle -->
+  <path d="M104 8 L107 17 L116 20 L107 23 L104 32 L101 23 L92 20 L101 17 Z" fill="#ffffff" stroke="#4fa9ee" stroke-width="2"/>
+</svg>

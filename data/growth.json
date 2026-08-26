@@ -1,5 +1,5 @@
 {
-  "$comment": "아웃게임 성장 상점. 재화 = 신의 파편(shards). levels[i].price = i번째 단계 가격. 효과는 src/sim이 id로 해석.",
+  "$comment": "아웃게임 성장 상점. 재화 = 신의 파편(shards). levels[i].price = i번째 단계 가격. 효과는 src/sim이 id로 해석. category = 업그레이드 탭(unit|util|building).",
   "currency": {
     "id": "shards",
     "name": "신의 파편"
@@ -8,6 +8,7 @@
     {
       "id": "enhancePerClick",
       "name": "1회 강화량",
+      "category": "util",
       "levels": [
         {
           "value": 1,
@@ -26,6 +27,7 @@
     {
       "id": "forgeLevel",
       "name": "야금술",
+      "category": "building",
       "levels": [
         {
           "value": 1,
@@ -45,6 +47,7 @@
     {
       "id": "beds",
       "name": "막사 침상",
+      "category": "building",
       "levels": [
         {
           "value": 1,
@@ -52,20 +55,22 @@
         },
         {
           "value": 2,
-          "price": 80
+          "price": 320
         }
-      ]
+      ],
+      "$comment": "1회 업그레이드가 최대. 고가."
     },
     {
       "id": "stunCooldown",
       "name": "기절 쿨타임",
+      "category": "util",
       "levels": [
         {
-          "value": 12,
+          "value": 24,
           "price": 0
         },
         {
-          "value": 9,
+          "value": 18,
           "price": 40
         }
       ]
@@ -73,6 +78,7 @@
     {
       "id": "mineSlots",
       "name": "광산 인원",
+      "category": "building",
       "levels": [
         {
           "value": 1,
@@ -91,9 +97,10 @@
     {
       "id": "wallLevel",
       "name": "성벽 내구도",
+      "category": "building",
       "levels": [
         {
-          "value": 1.0,
+          "value": 1,
           "price": 0
         },
         {
@@ -109,6 +116,7 @@
     {
       "id": "artisanMemory",
       "name": "장인의 기억",
+      "category": "util",
       "levels": [
         {
           "value": 0,
@@ -124,6 +132,7 @@
     {
       "id": "forgeBias",
       "name": "대장간 성향",
+      "category": "util",
       "levels": [
         {
           "value": 0,
@@ -139,11 +148,12 @@
     {
       "id": "unitUpgrade",
       "name": "유닛 기본 수치",
+      "category": "unit",
       "perUnit": true,
       "$comment": "유닛 id마다 독립 단계. value = hp·def 배율",
       "levels": [
         {
-          "value": 1.0,
+          "value": 1,
           "price": 0
         },
         {

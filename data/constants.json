@@ -5,8 +5,8 @@
 
   "forge": {
     "costBase": 5,
-    "costPerFiveLevels": 1,
-    "atk": { "base": 10, "perLevel": 4, "breakthroughEvery": 10, "breakthroughMult": 1.1 },
+    "costPerFiveLevels": 3,
+    "atk": { "base": 2.8, "perLevel": 2.52, "breakthroughEvery": 10, "breakthroughMult": 1.04 },
     "scrapAtk": 12,
     "resultByForgeLevel": {
       "1": { "fail": 0.20, "success": 0.70, "great": 0.10 },
@@ -36,22 +36,23 @@
   },
 
   "classBase": {
-    "$comment": "병종 상수 (유닛 스탯 아님). attackInterval = 기본 공격 간격(초), moveSpeed = px/초, range = px",
+    "$comment": "병종 상수 (유닛 스탯 아님). attackInterval = 기본 공격 간격(초), moveSpeed = px/초, range = px, damageMult = 병종 피해 배율(생략 시 1)",
     "knight":  { "attackInterval": 1.0, "moveSpeed": 120, "range": 60 },
-    "thrower": { "attackInterval": 1.2, "moveSpeed": 110, "range": 420 },
+    "thrower": { "attackInterval": 1.2, "moveSpeed": 110, "range": 420, "damageMult": 0.7 },
     "mage":    { "attackInterval": 1.5, "moveSpeed": 100, "range": 60, "flagRadius": 220 }
   },
 
   "fitness": {
     "$comment": "병종 × 검 카테고리 적합도. mult = 공격력(또는 버프 강도) 배율, optionsActive = 종류 고유/특성 버프·디버프 옵션 발현 여부",
     "knight":  { "knightSword": { "mult": 1.0, "optionsActive": true }, "spear": { "mult": 0.7, "optionsActive": false }, "ceremonial": { "mult": 0.4, "optionsActive": false } },
-    "thrower": { "knightSword": { "mult": 0.7, "optionsActive": true }, "spear": { "mult": 1.0, "optionsActive": true }, "ceremonial": { "mult": 0.4, "optionsActive": false } },
+    "thrower": { "knightSword": { "mult": 0.7, "optionsActive": false }, "spear": { "mult": 1.0, "optionsActive": true }, "ceremonial": { "mult": 0.4, "optionsActive": false } },
     "mage":    { "knightSword": { "mult": 0.4, "optionsActive": false }, "spear": { "mult": 0.4, "optionsActive": false }, "ceremonial": { "mult": 1.0, "optionsActive": true } }
   },
 
   "mageBuffPercentPerAtk": 0.1,
+  "mageDebuffPercentPerAtk": 0.1,
 
-  "stun": { "cooldownSec": 12, "restSpeedMultiplier": 2 },
+  "stun": { "cooldownSec": 24, "restSpeedMultiplier": 2 },
   "barracks": { "beds": 1, "recoverThreshold": 0.20, "autoCallNext": false },
   "mine": { "$comment": "slots = 배치 가능 유닛 수(인게임 용량, 식량과 무관). 성장으로 최대 3", "baseRatePerSec": 0.5, "slots": 1, "maxSlots": 3, "levelCoef": 0.05, "minerIncludedInSupply": true },
 
@@ -69,10 +70,10 @@
   },
 
   "wave": {
-    "mobPhaseSec": 40,
+    "mobPhaseSec": 28,
     "mobSpawnIntervalSec": [5, 8],
-    "warningSec": 10,
-    "warningSecHermes": 5,
+    "warningSec": 8,
+    "warningSecHermes": 4,
     "giantsBringMobs": false
   },
 
@@ -82,4 +83,65 @@
   },
 
   "critBase": { "chance": 0.05, "damage": 1.5 }
+  ,
+  "battle": {
+    "$comment": "프로토타입 한 판 3~5분 밸런스. 렌더/시뮬이 공유하는 수치. unitMinY = 아군이 올라갈 수 있는 상한(맵 절반).",
+    "startMaterials": 150,
+    "monsterSpeedPixels": 74,
+    "unitDamageMult": 10.0,
+    "monsterDamageMult": 0.42,
+    "magePulseSec": 3,
+    "magePulseRadius": 220,
+    "unitAttackWindupSec": 0.65,
+    "mageCastWindupSec": 0.85,
+    "monsterAttackWindupSec": 0.38,
+    "bossAoeWindupSec": 0.7,
+    "bossAoeIntervalSec": 4,
+    "bossAoeRadius": 245,
+    "bossAoeDamageMult": 0.35,
+    "bossAoeWallDamagePct": 0.04,
+    "bossAdvanceWhileCastingMult": 0.65,
+    "unitSeparationRadius": 125,
+    "unitSeparationStrength": 0.35,
+    "bossUnitSeparationRadius": 190,
+    "bossUnitSeparationStrength": 1.0,
+    "supplyTravelSec": 1.0,
+    "supplyRunSpeedMult": 3.2,
+    "supplySprintBackSec": 6,
+    "wallContactY": 1190,
+    "unitMinY": 560,
+    "mobAdvanceStopOffset": 40,
+    "unitWeave": { "$comment": "사거리 안에 들어온 아군은 제자리에 서지 않고 centerY 주변을 위아래·좌우로 무빙샷. ampY는 병종별 진폭", "centerY": 660, "ampY": { "knight": 55, "thrower": 105, "mage": 60 }, "ampX": 75, "speedMult": 0.6, "frequency": 0.9 },
+    "monsterAggroRadius": 360,
+    "idleWallOffset": 82,
+    "idleWanderRadius": 58,
+    "idleMoveSpeedMult": 0.38,
+    "idleFrequency": 0.72,
+    "mobStopY": 1160,
+    "allySpawnY": 1080,
+    "enemySpawnY": 190,
+    "tickSec": 0.05
+  },
+  "bossPatterns": {
+    "S1": [
+      { "id": "charge", "cooldown": 12, "windup": 1.4, "damageMult": 1.2, "radius": 150, "wallDamagePct": 0.42, "knockback": 210, "lineWidth": 125 },
+      { "id": "stomp", "cooldown": 8, "windup": 0.9, "damageMult": 0.8, "radius": 270, "wallDamagePct": 0.0, "knockback": 90, "lineWidth": 0 },
+      { "id": "leap", "cooldown": 11, "windup": 1.2, "damageMult": 1.05, "radius": 320, "wallDamagePct": 0.04, "knockback": 130, "lineWidth": 0 }
+    ],
+    "S2": [
+      { "id": "tidalWave", "cooldown": 9, "windup": 1.0, "damageMult": 0.7, "radius": 360, "wallDamagePct": 0.03, "knockback": 180, "lineWidth": 520 },
+      { "id": "whirlpool", "cooldown": 10, "windup": 1.25, "damageMult": 0.85, "radius": 330, "wallDamagePct": 0.0, "knockback": -150, "lineWidth": 0 },
+      { "id": "tridentRain", "cooldown": 8, "windup": 0.95, "damageMult": 1.15, "radius": 145, "wallDamagePct": 0.0, "knockback": 45, "lineWidth": 0 }
+    ],
+    "S3": [
+      { "id": "hammerSmash", "cooldown": 8, "windup": 0.95, "damageMult": 1.1, "radius": 285, "wallDamagePct": 0.04, "knockback": 120, "lineWidth": 0 },
+      { "id": "lightningLanes", "cooldown": 9, "windup": 1.15, "damageMult": 1.25, "radius": 120, "wallDamagePct": 0.0, "knockback": 30, "lineWidth": 100 },
+      { "id": "overheat", "cooldown": 11, "windup": 1.3, "damageMult": 0.75, "radius": 360, "wallDamagePct": 0.05, "knockback": 75, "lineWidth": 0 }
+    ],
+    "INF": [
+      { "id": "voidRush", "cooldown": 9, "windup": 1.15, "damageMult": 1.25, "radius": 170, "wallDamagePct": 0.16, "knockback": 230, "lineWidth": 150 },
+      { "id": "starfall", "cooldown": 8, "windup": 1.0, "damageMult": 1.35, "radius": 175, "wallDamagePct": 0.03, "knockback": 80, "lineWidth": 0 },
+      { "id": "gravityWell", "cooldown": 10, "windup": 1.35, "damageMult": 0.9, "radius": 370, "wallDamagePct": 0.0, "knockback": -190, "lineWidth": 0 }
+    ]
+  }
 }

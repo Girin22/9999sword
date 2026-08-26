@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <linearGradient id="rock" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8d7b6a"/>
+      <stop offset="1" stop-color="#4f4239"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff3a8"/>
+      <stop offset="0.45" stop-color="#f7c948"/>
+      <stop offset="1" stop-color="#c98a12"/>
+    </linearGradient>
+    <linearGradient id="goldDeep" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffd85c"/>
+      <stop offset="1" stop-color="#a86d08"/>
+    </linearGradient>
+  </defs>
+  <!-- shadow -->
+  <ellipse cx="66" cy="112" rx="44" ry="9" fill="#293442" opacity="0.22"/>
+  <!-- rock body -->
+  <path d="M22 96 L14 62 L34 34 L64 22 L96 34 L114 64 L104 98 L70 110 Z" fill="url(#rock)" stroke="#293442" stroke-width="6" stroke-linejoin="round"/>
+  <!-- gold veins / nuggets -->
+  <path d="M36 44 L58 32 L74 44 L66 62 L44 60 Z" fill="url(#gold)" stroke="#293442" stroke-width="4.5" stroke-linejoin="round"/>
+  <path d="M70 70 L92 56 L104 74 L92 92 L72 88 Z" fill="url(#goldDeep)" stroke="#293442" stroke-width="4.5" stroke-linejoin="round"/>
+  <path d="M30 74 L48 70 L58 84 L44 98 L28 90 Z" fill="url(#gold)" stroke="#293442" stroke-width="4.5" stroke-linejoin="round"/>
+  <!-- highlights -->
+  <path d="M44 42 L58 36 L62 42 L50 48 Z" fill="#ffffff" opacity="0.75"/>
+  <path d="M82 62 L92 60 L96 68 L86 70 Z" fill="#ffffff" opacity="0.65"/>
+  <path d="M36 78 L46 76 L48 82 L40 86 Z" fill="#ffffff" opacity="0.65"/>
+  <!-- sparkles -->
+  <path d="M104 26 L107 34 L115 37 L107 40 L104 48 L101 40 L93 37 L101 34 Z" fill="#fff6c4" stroke="#e9b949" stroke-width="2"/>
+  <path d="M18 24 L20 29 L25 31 L20 33 L18 38 L16 33 L11 31 L16 29 Z" fill="#fff6c4" stroke="#e9b949" stroke-width="1.5"/>
+</svg>

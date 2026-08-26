@@ -18,7 +18,7 @@
     { "id": "hephaestus", "name": "헤파이스토스", "hp": 3000, "atk": 30, "def": 100, "moveSpeed": 0.6, "attackInterval": 1.6, "wallSeconds": 18,
       "warningSec": 10, "special": { "id": "rival", "targetHighestSwordLevel": true }, "drop": 25, "mask": "hephaestus", "props": ["hammer"] },
     { "id": "zeus",       "name": "제우스",       "hp": 5000, "atk": 28, "def": 60,  "moveSpeed": 0.8, "attackInterval": 1.3, "wallSeconds": 20,
-      "warningSec": 10, "special": { "id": "bolt", "every": 15, "everyBelowHalf": 8, "stunSec": 2, "scrapsSword": false }, "drop": 40, "boss": true, "mask": "zeus", "props": ["beard", "bolt"] }
+      "warningSec": 10, "special": { "id": "bolt", "every": 15, "everyBelowHalf": 8, "stunSec": 4, "scrapsSword": false }, "drop": 40, "boss": true, "mask": "zeus", "props": ["beard", "bolt"] }
   ],
   "scaling": {
     "mob":   { "hpAtkMultPerStage": 1.25, "defAddPerStage": 8,  "countMultPerStage": 1.15 },
