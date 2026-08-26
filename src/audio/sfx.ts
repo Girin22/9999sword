@@ -9,7 +9,8 @@ import { session } from '../session';
  *   role target   →  hits −14 dB · swings/shots −12 dB · magic −10 dB · boss −8 dB
  *   file max-RMS  →  attack −6.6 · attack2 −4.1 · shoot −4.9 · magic −15.1
  *                    damaged −8.1 · damaged2 −9.2 · monster_run −6.8 · monster_smash −6.7
- * gain = 10^((target − maxRMS) / 20), capped at 1.0 (magic is already at its peak headroom).
+ * gain = 10^((target − maxRMS) / 20), capped at 1.0. magic is pulled down to 0.5 by ear — its long tail
+ * stacks across casts and reads louder than its RMS suggests.
  */
 export type SfxCue = 'swing' | 'shoot' | 'magic' | 'hit' | 'bossRun' | 'bossSmash';
 
@@ -44,7 +45,7 @@ export const SFX_FILES: Record<string, string> = {
 const CUES: Record<SfxCue, CueDef> = {
   swing: { keys: ['sfx-attack', 'sfx-attack2'], gains: [0.54, 0.4], maxVoices: 3, minIntervalMs: 70, priority: 2, detune: 80 },
   shoot: { keys: ['sfx-shoot'], gains: [0.44], maxVoices: 3, minIntervalMs: 70, priority: 2, detune: 90 },
-  magic: { keys: ['sfx-magic'], gains: [1], maxVoices: 2, minIntervalMs: 250, priority: 3, detune: 40 },
+  magic: { keys: ['sfx-magic'], gains: [0.5], maxVoices: 2, minIntervalMs: 250, priority: 3, detune: 40 },
   hit: { keys: ['sfx-damaged', 'sfx-damaged2'], gains: [0.51, 0.58], maxVoices: 4, minIntervalMs: 55, priority: 1, detune: 120 },
   bossRun: { keys: ['sfx-monster-run'], gains: [0.87], maxVoices: 1, minIntervalMs: 400, priority: 5, detune: 0, duckMs: 500 },
   bossSmash: { keys: ['sfx-monster-smash'], gains: [0.86], maxVoices: 2, minIntervalMs: 120, priority: 5, detune: 30, duckMs: 450 },

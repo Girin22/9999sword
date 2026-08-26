@@ -25,6 +25,9 @@ export class BattleHUD extends Phaser.Scene {
   private swordHolo: HoloOutline | null = null;
   /** While a spirit reveal is playing: the enhance button is locked and the forge sparkles. */
   private reveal: { axis: HoloAxis; until: number } | null = null;
+  /** Healing progress drawn along the recover button outline (barracks tab only). */
+  private recoverRing?: Phaser.GameObjects.Graphics;
+  private recoverText?: Phaser.GameObjects.Text;
   private selection!: Phaser.GameObjects.Graphics;
   private speedLabel!: Phaser.GameObjects.Text;
   private tooltipLayer?: Phaser.GameObjects.Container;
@@ -116,6 +119,8 @@ export class BattleHUD extends Phaser.Scene {
 
   private renderAction(): void {
     this.action.destroy(true);
+    this.recoverRing = undefined;
+    this.recoverText = undefined;
     this.swordPanel = undefined;
     this.swordHolo?.destroy();
     this.swordHolo = null;
@@ -182,7 +187,11 @@ export class BattleHUD extends Phaser.Scene {
       });
       const recover = makeButton(this, L.actionBar.right.x + L.actionBar.right.w / 2, (L.actionBar.y0 + L.actionBar.y1) / 2, '', () => this.sim.recover(), { width: L.actionBar.right.w, height: slotH, fill: 0xf7d9d9 });
       recover.add(this.medicalCross());
+      this.recoverText = this.add.text(0, 58, '', { fontSize: '22px', color: '#293442', fontStyle: 'bold', stroke: '#ffffff', strokeThickness: 5 }).setOrigin(0.5);
+      recover.add(this.recoverText);
       this.action.add(recover);
+      this.recoverRing = this.add.graphics();
+      this.action.add(this.recoverRing);
     } else {
       const assigned = this.sim.mineAssigneeUid ? this.sim.units.find((unit) => unit.uid === this.sim.mineAssigneeUid) : undefined;
       const mining = assigned?.state === 'mining';
@@ -229,6 +238,7 @@ export class BattleHUD extends Phaser.Scene {
     this.values.setText(`◷ ${Math.ceil(remaining)}     ${'●'.repeat(state.wave)}${'○'.repeat(state.waveCount - state.wave)}`);
     this.wall.clear().fillStyle(0x293442, 0.85).fillRect(0, L.wallBar.y0, L.W, 40).fillStyle(state.wallHp / state.wallMax < 0.25 ? COLORS.red : COLORS.green, 1).fillRect(8, L.wallBar.y0 + 8, (L.W - 16) * Math.max(0, state.wallHp / state.wallMax), 24);
     this.drawSpiritGauge(state.forge.spiritCounter, state.forge.trait, state.forge.avatarReady, this.time.now);
+    this.drawRecoverProgress();
     this.speedLabel.setText(`×${state.speed}`);
     const info = this.swordPanel?.getByName('current-forge') as Phaser.GameObjects.Text | null | undefined;
     if (info) info.setText(`${state.forge.avatarReady ? '★' : state.forge.trait ? '◆' : '◇'} +${state.forge.n}`);
@@ -353,6 +363,31 @@ export class BattleHUD extends Phaser.Scene {
     return g;
   }
 
+  /**
+   * While a unit is in the barracks bed, a green stroke grows clockwise along the recover
+   * button's outline (top-centre → full loop = healed) with the seconds left under the cross.
+   * A unit still running back to the wall shows a pulsing partial ring instead.
+   */
+  private drawRecoverProgress(): void {
+    if (!this.recoverRing || !this.recoverText) return;
+    const resting = this.sim.units.find((unit) => unit.state === 'resting');
+    const incoming = !resting && this.sim.units.find((unit) => unit.state === 'returning' && unit.returnState === 'resting');
+    const g = this.recoverRing.clear();
+    if (!resting && !incoming) { this.recoverText.setText(''); return; }
+    const total = constants.stun.cooldownSec / constants.stun.restSpeedMultiplier;
+    const progress = resting ? Math.max(0, Math.min(1, 1 - resting.restTimer / total)) : 0.08 + 0.04 * Math.sin(this.time.now * 0.01);
+    const w = L.actionBar.right.w + 10; const h = L.actionBar.y1 - L.actionBar.y0 + 10;
+    const cx = L.actionBar.right.x + L.actionBar.right.w / 2; const cy = (L.actionBar.y0 + L.actionBar.y1) / 2;
+    const points = roundedRectPerimeter(cx - w / 2, cy - h / 2, w, h, 34, progress);
+    if (points.length > 1) {
+      g.lineStyle(16, 0x293442, 0.35).strokePoints(points, false);
+      g.lineStyle(9, resting ? COLORS.green : 0xf0c66f, 1).strokePoints(points, false);
+      const tip = points[points.length - 1]!;
+      g.fillStyle(0xffffff, 1).fillCircle(tip.x, tip.y, 7);
+    }
+    this.recoverText.setText(resting ? `${Math.ceil(resting.restTimer)}초` : '이동 중');
+  }
+
   private showMenu(): void {
     if (this.menuLayer) return;
     this.scene.pause('Battle');
@@ -370,4 +405,45 @@ export class BattleHUD extends Phaser.Scene {
     this.menuLayer = undefined;
     this.scene.resume('Battle');
   }
+}
+
+/**
+ * Points along a rounded rectangle's perimeter, starting at the top-centre and going
+ * clockwise, covering `fraction` (0..1) of the total length.
+ */
+function roundedRectPerimeter(x: number, y: number, w: number, h: number, r: number, fraction: number): { x: number; y: number }[] {
+  const radius = Math.min(r, w / 2, h / 2);
+  const straightW = w - radius * 2; const straightH = h - radius * 2; const arc = (Math.PI / 2) * radius;
+  const total = straightW * 2 + straightH * 2 + arc * 4;
+  const target = Math.max(0, Math.min(1, fraction)) * total;
+  const steps = 96;
+  const points: { x: number; y: number }[] = [];
+  for (let i = 0; i <= steps; i += 1) {
+    const d = (i / steps) * target;
+    points.push(pointAtDistance(x, y, w, h, radius, straightW, straightH, arc, d));
+  }
+  return points;
+}
+
+function pointAtDistance(x: number, y: number, w: number, h: number, r: number, sw: number, sh: number, arc: number, d: number): { x: number; y: number } {
+  // Segments clockwise from top-centre: top-right half, TR arc, right, BR arc, bottom, BL arc, left, TL arc, top-left half.
+  let rem = d;
+  const halfTop = sw / 2;
+  if (rem <= halfTop) return { x: x + w / 2 + rem, y };
+  rem -= halfTop;
+  if (rem <= arc) { const a = -Math.PI / 2 + (rem / arc) * (Math.PI / 2); return { x: x + w - r + Math.cos(a) * r, y: y + r + Math.sin(a) * r }; }
+  rem -= arc;
+  if (rem <= sh) return { x: x + w, y: y + r + rem };
+  rem -= sh;
+  if (rem <= arc) { const a = (rem / arc) * (Math.PI / 2); return { x: x + w - r + Math.cos(a) * r, y: y + h - r + Math.sin(a) * r }; }
+  rem -= arc;
+  if (rem <= sw) return { x: x + w - r - rem, y: y + h };
+  rem -= sw;
+  if (rem <= arc) { const a = Math.PI / 2 + (rem / arc) * (Math.PI / 2); return { x: x + r + Math.cos(a) * r, y: y + h - r + Math.sin(a) * r }; }
+  rem -= arc;
+  if (rem <= sh) return { x, y: y + h - r - rem };
+  rem -= sh;
+  if (rem <= arc) { const a = Math.PI + (rem / arc) * (Math.PI / 2); return { x: x + r + Math.cos(a) * r, y: y + r + Math.sin(a) * r }; }
+  rem -= arc;
+  return { x: x + r + Math.min(rem, halfTop), y };
 }
