@@ -290,8 +290,11 @@ export class BattleHUD extends Phaser.Scene {
       const color = axis ? Phaser.Display.Color.HSVToRGB(((time * 0.0004 + i * 0.09) % 1 + 1) % 1, axis === 'chaos' ? 0.85 : 0.55, 1).color : lit ? COLORS.gold : 0xffffff;
       g.fillStyle(color, glow).fillRoundedRect(x, y - 2, pipW, 14, 4);
     }
-    this.spiritLabel.setText(axis ? (avatarReady ? '신의 강림!' : axis === 'chaos' ? '혼돈의 기운!' : '질서의 기운!') : `장인의 기운 ${Math.min(pips, counter)}/${pips}`);
-    this.spiritLabel.setColor(axis === 'chaos' ? '#ffd0e0' : axis === 'order' ? '#d8f6ff' : '#ffffff');
+    // Text/colour changes re-render the text canvas — only touch them when they actually change.
+    const label = axis ? (avatarReady ? '신의 강림!' : axis === 'chaos' ? '혼돈의 기운!' : '질서의 기운!') : `장인의 기운 ${Math.min(pips, counter)}/${pips}`;
+    const color = axis === 'chaos' ? '#ffd0e0' : axis === 'order' ? '#d8f6ff' : '#ffffff';
+    if (this.spiritLabel.text !== label) this.spiritLabel.setText(label);
+    if (this.spiritLabel.style.color !== color) this.spiritLabel.setColor(color);
     if ((this.forgeHolo?.axis ?? null) !== axis) {
       this.forgeHolo?.destroy();
       this.forgeHolo = axis ? holoOutline(this, rect.x, rect.y, rect.w, rect.h, 30, axis, 12) : null;

@@ -6,7 +6,9 @@ import { addSheetSprite, animateHolo, applyHolo, clearHolo, COLORS, HOLO_PALETTE
 export interface UnitRig {
   root: Phaser.GameObjects.Container;
   body: Phaser.GameObjects.Graphics;
-  aura: Phaser.GameObjects.Graphics;
+  aura: Phaser.GameObjects.Image;
+  /** Mobile / non-desktop: skip post-processing and thin out per-frame particles. */
+  lowFx: boolean;
   art: Phaser.GameObjects.Image;
   handL: Phaser.GameObjects.Arc;
   handR: Phaser.GameObjects.Arc;
@@ -43,6 +45,32 @@ function cropSheet(image: Phaser.GameObjects.Image, key: string, index: number, 
   void rows;
 }
 
+/**
+ * The mage flag aura used to be 15 Graphics primitives redrawn every frame per mage.
+ * It is now baked once per colour into a texture; the image just rotates and pulses.
+ */
+function mageAuraTexture(scene: Phaser.Scene, color: number): string {
+  const key = `mage-aura-${color.toString(16)}`;
+  if (scene.textures.exists(key)) return key;
+  const radius = constants.classBase.mage.flagRadius;
+  const size = radius * 2 + 12;
+  const g = scene.make.graphics({ x: 0, y: 0 }, false);
+  const c = size / 2;
+  g.fillStyle(color, 0.08).fillCircle(c, c, radius).lineStyle(5, color, 0.58).strokeCircle(c, c, radius);
+  for (let i = 0; i < 14; i += 1) {
+    const angle = i * 2.399;
+    const starRadius = 36 + i / 14 * (radius - 52);
+    const x = c + Math.cos(angle) * starRadius;
+    const y = c + Math.sin(angle) * starRadius;
+    const s = 3 + i % 3;
+    g.fillStyle(i % 2 ? 0xffffff : color, 0.36);
+    g.fillPoints([{ x, y: y - s }, { x: x + s, y }, { x, y: y + s }, { x: x - s, y }], true);
+  }
+  g.generateTexture(key, size, size);
+  g.destroy();
+  return key;
+}
+
 export function createUnitRig(scene: Phaser.Scene, unit: Unit): UnitRig {
   const body = scene.add
     .graphics()
@@ -53,7 +81,9 @@ export function createUnitRig(scene: Phaser.Scene, unit: Unit): UnitRig {
     .setVisible(false);
   const artIndex = Math.max(0, unitData.units.findIndex((entry) => entry.id === unit.defId));
   const art = sizeSheetSprite(addSheetSprite(scene, 'units-sheet', artIndex, 7), 135, 340);
-  const aura = scene.add.graphics().setDepth(620);
+  const lowFx = !scene.sys.game.device.os.desktop;
+  const auraColor = unit.defId === 'hote' ? COLORS.red : COLORS.blue;
+  const aura = scene.add.image(unit.pos.x, unit.pos.y, mageAuraTexture(scene, auraColor)).setDepth(620).setVisible(false);
   const handL = scene.add.circle(-42, 8, 10, 0xf1bd89).setStrokeStyle(4, COLORS.ink);
   const handR = scene.add.circle(42, 8, 10, 0xf1bd89).setStrokeStyle(4, COLORS.ink);
   const weapon = scene.add
@@ -86,7 +116,7 @@ export function createUnitRig(scene: Phaser.Scene, unit: Unit): UnitRig {
   const stunRing = scene.add.graphics();
   const stunText = scene.add.text(0, 0, '', { fontSize: '26px', color: '#ffffff', fontStyle: 'bold', stroke: '#293442', strokeThickness: 6 }).setOrigin(0.5);
   const stun = scene.add.container(unit.pos.x, unit.pos.y, [stunRing, stunText]).setVisible(false).setDepth(1400);
-  return { root, body, aura, art, handL, handR, weapon, weaponGlowArt, weaponHoloArt, weaponArt, hp, stun, stunRing, stunText, sparks, holo: null, lastTrait: null, lastState: unit.state, lastKind: unit.sword.kind };
+  return { root, body, aura, art, handL, handR, weapon, weaponGlowArt, weaponHoloArt, weaponArt, hp, stun, stunRing, stunText, sparks, holo: null, lastTrait: null, lowFx, lastState: unit.state, lastKind: unit.sword.kind };
 }
 
 const STUN_RING_RADIUS = 34;
@@ -127,7 +157,7 @@ function drawBladeSparks(rig: UnitRig, axis: 'order' | 'chaos', length: number, 
   const reach = art.displayHeight * 0.84;
   const halfWidth = art.displayWidth * 0.3;
   const palette = HOLO_PALETTE[axis].spark;
-  const count = axis === 'order' ? 9 : 12;
+  const count = (axis === 'order' ? 9 : 12) >> (rig.lowFx ? 1 : 0);
   const speed = axis === 'order' ? 0.00035 : 0.0011;
   for (let i = 0; i < count; i += 1) {
     const t = ((i / count) + time * speed + phase * 0.01) % 1;
@@ -167,21 +197,8 @@ export function syncUnitRig(rig: UnitRig, unit: Unit, time = 0): void {
   drawStunRing(rig, unit);
 
   const auraVisible = unit.class === 'mage' && (unit.state === 'fight' || unit.state === 'avatar');
-  const auraColor = unit.defId === 'hote' ? COLORS.red : COLORS.blue;
-  rig.aura.clear().setVisible(auraVisible).setPosition(unit.pos.x, unit.pos.y).setDepth(620);
-  if (auraVisible) {
-    const radius = constants.classBase.mage.flagRadius;
-    rig.aura.fillStyle(auraColor, 0.08).fillCircle(0, 0, radius).lineStyle(5, auraColor, 0.58).strokeCircle(0, 0, radius);
-    for (let i = 0; i < 14; i += 1) {
-      const angle = i * 2.399 + time * 0.00022;
-      const starRadius = 36 + i / 14 * (radius - 52);
-      const x = Math.cos(angle) * starRadius;
-      const y = Math.sin(angle) * starRadius;
-      const size = 3 + i % 3;
-      rig.aura.fillStyle(i % 2 ? 0xffffff : auraColor, 0.28 + 0.16 * Math.sin(time * 0.003 + i));
-      rig.aura.fillPoints([{ x, y: y - size }, { x: x + size, y }, { x, y: y + size }, { x: x - size, y }], true);
-    }
-  }
+  rig.aura.setVisible(auraVisible);
+  if (auraVisible) rig.aura.setPosition(unit.pos.x, unit.pos.y).setAngle(time * 0.0126).setAlpha(0.82 + 0.18 * Math.sin(time * 0.003 + phase));
 
   const length = 92 + Math.min(76, unit.sword.n * 2.4);
   const thick = 46 + Math.min(20, unit.sword.n * 0.5);
@@ -215,7 +232,7 @@ export function syncUnitRig(rig: UnitRig, unit: Unit, time = 0): void {
   const traitId = holo ? unit.sword.trait : null;
   if (traitId !== rig.lastTrait) {
     rig.lastTrait = traitId;
-    if (traitId && trait) rig.holo = applyHolo(rig.weaponArt, chaos ? 'chaos' : 'order');
+    if (traitId && trait && !rig.lowFx) rig.holo = applyHolo(rig.weaponArt, chaos ? 'chaos' : 'order');
     else { clearHolo(rig.weaponArt); rig.holo = null; }
   }
   if (rig.holo) animateHolo(rig.holo, time, phase);
